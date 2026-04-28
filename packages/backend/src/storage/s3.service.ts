@@ -3,8 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
   PutObjectCommand,
+  GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Readable } from 'stream';
+import axios from 'axios';
 
 @Injectable()
 export class S3Service {
@@ -27,6 +30,7 @@ export class S3Service {
         accessKeyId,
         secretAccessKey,
       },
+      maxAttempts: 1, // Avoid dynamic import in retry middleware
     });
   }
 
@@ -42,6 +46,32 @@ export class S3Service {
       return await getSignedUrl(this.s3Client, command, { expiresIn: 900 });
     } catch (error) {
       this.logger.error(`Failed to generate presigned URL for key ${key}`, error.stack);
+      throw error;
+    }
+  }
+
+  async getPresignedDownloadUrl(key: string): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: this.bucketName,
+      Key: key,
+    });
+
+    try {
+      // URL expires in 15 minutes
+      return await getSignedUrl(this.s3Client, command, { expiresIn: 900 });
+    } catch (error) {
+      this.logger.error(`Failed to generate presigned download URL for key ${key}`, error.stack);
+      throw error;
+    }
+  }
+
+  async downloadObject(key: string): Promise<Buffer> {
+    const url = await this.getPresignedDownloadUrl(key);
+    try {
+      const response = await axios.get(url, { responseType: 'arraybuffer' });
+      return Buffer.from(response.data);
+    } catch (error) {
+      this.logger.error(`Failed to download object from URL for key ${key}`, error.stack);
       throw error;
     }
   }

@@ -39,6 +39,7 @@ model CardIngestionJob {
   status         IngestionStatus @default(uploaded)
   ocrText        String?
   phash          String?
+  candidateMatches Json?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
 }

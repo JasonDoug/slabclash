@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Param, Get } from '@nestjs/common';
 import { IngestionService } from './ingestion.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateUploadUrlsDto } from './dto/create-upload-urls.dto';
@@ -15,5 +15,18 @@ export class IngestionController {
       dto.frontFileName,
       dto.backFileName,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('process/:scanJobId')
+  async process(@Request() req, @Param('scanJobId') scanJobId: string) {
+    // For now, only the owner can process. In future, admins might too.
+    return this.ingestionService.processScanJob(req.user.id, scanJobId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('status/:scanJobId')
+  async getStatus(@Request() req, @Param('scanJobId') scanJobId: string) {
+    return this.ingestionService.getScanJobStatus(req.user.id, scanJobId);
   }
 }

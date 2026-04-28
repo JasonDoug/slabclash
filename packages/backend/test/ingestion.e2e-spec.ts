@@ -46,46 +46,43 @@ describe('Ingestion (e2e)', () => {
     await app.close();
   });
 
-  it('should generate presigned URLs and allow upload', async () => {
-    const frontFileName = 'test-front.jpg';
+  it('should generate presigned URLs, allow upload, and process OCR', async () => {
+    const frontFileName = 'test-front.png';
     
+    // 1. Get presigned URL
     const uploadRes = await request(app.getHttpServer())
       .post('/v1/scan/upload')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ frontFileName })
       .expect(201);
 
-    expect(uploadRes.body).toHaveProperty('scanJobId');
-    expect(uploadRes.body).toHaveProperty('uploadUrlFront');
-    
     const { uploadUrlFront, scanJobId } = uploadRes.body;
 
-    // Test the presigned URL by uploading a dummy file
-    const fileContent = Buffer.from('fake-image-content');
+    // 2. Upload a real tiny PNG (8x8 black pixel)
+    const fileContent = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEUAAAD///+l2Z/dAAAADklEQVQI12NgYAgAYgYAAXAA8fX9f78AAAAASUVORK5CYII=', 'base64');
     
-    // Use axios to PUT the file
-    // Note: We need to handle potential network errors if MinIO is not running
-    try {
-      const putRes = await axios.put(uploadUrlFront, fileContent, {
-        headers: {
-          'Content-Type': 'image/jpeg',
-        },
-      });
-      expect(putRes.status).toBe(200);
-    } catch (error) {
-      if (error.code === 'ECONNREFUSED') {
-        console.warn('MinIO is not running, skipping upload verification');
-      } else {
-        throw error;
-      }
-    }
-
-    // Verify job exists in DB
-    const job = await prisma.cardIngestionJob.findUnique({
-      where: { id: scanJobId },
+    await axios.put(uploadUrlFront, fileContent, {
+      headers: { 'Content-Type': 'image/png' },
     });
-    expect(job).toBeDefined();
-    expect(job.status).toBe('uploaded');
-    expect(job.userId).toBe(userId);
+
+    // 3. Process the job
+    const processRes = await request(app.getHttpServer())
+      .post(`/v1/scan/process/${scanJobId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(201);
+
+    expect(processRes.body.status).toBe('awaiting_user_confirm');
+    expect(processRes.body.ocrText).toContain('MOCK OCR TEXT');
+    expect(processRes.body.phash).toBeDefined();
+
+    // 4. Check status
+    const statusRes = await request(app.getHttpServer())
+      .get(`/v1/scan/status/${scanJobId}`)
+      .set('Authorization', `Bearer ${accessToken}`)
+      .expect(200);
+
+    expect(statusRes.body.status).toBe('awaiting_user_confirm');
+    expect(statusRes.body.ocrText).toBe(processRes.body.ocrText);
+    expect(statusRes.body.phash).toBe(processRes.body.phash);
   });
 });
