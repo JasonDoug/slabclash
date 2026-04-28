@@ -20,6 +20,7 @@ model User {
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
   scanJobs              CardIngestionJob[]
+  cards                 Card[]
 }
 
 enum IngestionStatus {
@@ -28,6 +29,53 @@ enum IngestionStatus {
   awaiting_user_confirm
   verified
   flagged
+}
+
+enum ConditionReported {
+  mint
+  near_mint
+  excellent
+  good
+  fair
+  poor
+}
+
+enum Rarity {
+  common
+  uncommon
+  rare
+  ultra_rare
+  secret_rare
+}
+
+model Player {
+  id    String @id @default(uuid())
+  name  String @unique
+  cards Card[]
+}
+
+model Card {
+  id                   String          @id @default(uuid())
+  user                 User            @relation(fields: [userId], references: [id])
+  userId               String
+  player               Player          @relation(fields: [playerId], references: [id])
+  playerId             String
+  year                 Int
+  setName              String
+  variant              String?
+  serialNumber         String?
+  conditionReported    ConditionReported
+  conditionEstimatedScore Int?
+  marketValueCents     Int?
+  rarity               Rarity
+  powerScore           Int?
+  provenance           Json?
+  imageFrontKey        String
+  imageBackKey         String?
+  phash                String?
+  ingestionStatus      IngestionStatus  @default(verified)
+  createdAt            DateTime        @default(now())
+  ratingJobs           RatingJob[]
 }
 
 model CardIngestionJob {
@@ -42,4 +90,12 @@ model CardIngestionJob {
   candidateMatches Json?
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+}
+
+model RatingJob {
+  id        String   @id @default(uuid())
+  card      Card     @relation(fields: [cardId], references: [id])
+  cardId    String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
 }

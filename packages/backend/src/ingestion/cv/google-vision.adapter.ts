@@ -10,13 +10,17 @@ export class GoogleVisionAdapter extends CVService {
 
   constructor(private configService: ConfigService) {
     super();
-    const credentialsJson = this.configService.get<string>('GOOGLE_APPLICATION_CREDENTIALS_JSON');
+    const credentialsJson = this.configService.get<string>(
+      'GOOGLE_APPLICATION_CREDENTIALS_JSON',
+    );
     if (credentialsJson) {
       try {
         const credentials = JSON.parse(credentialsJson);
         this.client = new ImageAnnotatorClient({ credentials });
       } catch (e) {
-        this.logger.error('Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON');
+        this.logger.error(
+          'Failed to parse GOOGLE_APPLICATION_CREDENTIALS_JSON',
+        );
       }
     } else {
       // Fallback to default auth if file path is provided via env var GOOGLE_APPLICATION_CREDENTIALS
@@ -28,7 +32,7 @@ export class GoogleVisionAdapter extends CVService {
     this.logger.log('Calling Google Vision API...');
     const [result] = await this.client.textDetection(imageBuffer);
     const text = result.fullTextAnnotation?.text || '';
-    
+
     // In a real implementation, we might also extract entities or labels
     return {
       text,

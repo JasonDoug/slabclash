@@ -8,7 +8,7 @@ export class MockCVAdapter extends CVService {
     return {
       text: 'MOCK OCR TEXT: 2018 Topps Marcus Ramirez #42',
       candidates: [
-        { name: 'Marcus Ramirez', year: 2018, set: 'Topps', confidence: 0.99 }
+        { name: 'Marcus Ramirez', year: 2018, set: 'Topps', confidence: 0.99 },
       ],
     };
   }

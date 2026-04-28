@@ -8,9 +8,11 @@ import { MockCVAdapter } from './cv/mock-cv.adapter';
 import { GoogleVisionAdapter } from './cv/google-vision.adapter';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MatchCandidateService } from './match-candidate.service';
+import { CardModule } from '../card/card.module';
+import { RatingModule } from '../rating/rating.module';
 
 @Module({
-  imports: [PrismaModule, StorageModule, ConfigModule],
+  imports: [PrismaModule, StorageModule, ConfigModule, CardModule, RatingModule],
   controllers: [IngestionController],
   providers: [
     IngestionService,
@@ -19,8 +21,8 @@ import { MatchCandidateService } from './match-candidate.service';
       provide: CVService,
       useFactory: (configService: ConfigService) => {
         const provider = configService.get<string>('CV_PROVIDER') || 'mock';
-        return provider === 'google' 
-          ? new GoogleVisionAdapter(configService) 
+        return provider === 'google'
+          ? new GoogleVisionAdapter(configService)
           : new MockCVAdapter();
       },
       inject: [ConfigService],

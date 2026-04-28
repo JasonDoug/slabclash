@@ -29,7 +29,7 @@ export class MatchCandidateService implements OnModuleInit {
       const filePath = path.join(process.cwd(), 'data', 'refPlayers.json');
       const fileContent = fs.readFileSync(filePath, 'utf8');
       this.referenceData = JSON.parse(fileContent);
-      
+
       this.fuse = new Fuse(this.referenceData, {
         keys: ['playerName', 'setName'],
         includeScore: true,
@@ -37,7 +37,9 @@ export class MatchCandidateService implements OnModuleInit {
         ignoreLocation: true,
       });
 
-      this.logger.log(`Loaded ${this.referenceData.length} reference players for matching.`);
+      this.logger.log(
+        `Loaded ${this.referenceData.length} reference players for matching.`,
+      );
     } catch (error) {
       this.logger.error('Failed to load reference player data', error.stack);
       // Initialize with empty array if file fails to load
@@ -87,7 +89,7 @@ export class MatchCandidateService implements OnModuleInit {
     }
 
     return Array.from(candidateMap.values())
-      .filter(c => c.confidence > 0.4) 
+      .filter((c) => c.confidence > 0.4)
       .sort((a, b) => b.confidence - a.confidence)
       .slice(0, 5); // Return top 5
   }

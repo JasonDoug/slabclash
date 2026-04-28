@@ -9,13 +9,30 @@ describe('MatchCandidateService', () => {
   let service: MatchCandidateService;
 
   const mockReferenceData = [
-    { playerId: 'p1', playerName: 'Marcus Ramirez', year: 2018, setName: 'Topps' },
-    { playerId: 'p2', playerName: 'Shohei Ohtani', year: 2018, setName: 'Topps Heritage' },
-    { playerId: 'p3', playerName: 'Mike Trout', year: 2011, setName: 'Topps Update' },
+    {
+      playerId: 'p1',
+      playerName: 'Marcus Ramirez',
+      year: 2018,
+      setName: 'Topps',
+    },
+    {
+      playerId: 'p2',
+      playerName: 'Shohei Ohtani',
+      year: 2018,
+      setName: 'Topps Heritage',
+    },
+    {
+      playerId: 'p3',
+      playerName: 'Mike Trout',
+      year: 2011,
+      setName: 'Topps Update',
+    },
   ];
 
   beforeEach(async () => {
-    (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify(mockReferenceData));
+    (fs.readFileSync as jest.Mock).mockReturnValue(
+      JSON.stringify(mockReferenceData),
+    );
     (fs.existsSync as jest.Mock).mockReturnValue(true);
 
     const module: TestingModule = await Test.createTestingModule({
