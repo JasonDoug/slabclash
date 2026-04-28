@@ -5,6 +5,7 @@ import { randomUUID, createHash } from 'crypto';
 import * as mime from 'mime-types';
 import { CVService } from './cv/cv.service';
 import * as imghash from 'imghash';
+import { MatchCandidateService } from './match-candidate.service';
 
 @Injectable()
 export class IngestionService {
@@ -12,6 +13,7 @@ export class IngestionService {
     private prisma: PrismaService,
     private s3Service: S3Service,
     private cvService: CVService,
+    private matchCandidateService: MatchCandidateService,
   ) {}
 
   async createUploadUrls(userId: string, frontFileName: string, backFileName?: string) {
@@ -72,6 +74,9 @@ export class IngestionService {
     // Run OCR
     const ocrResult = await this.cvService.extractOCR(frontImageBuffer);
 
+    // Find ranked candidates from reference data
+    const candidates = await this.matchCandidateService.findCandidates(ocrResult.text);
+
     // Compute pHash (with fallback for dev)
     let phash: string;
     try {
@@ -88,7 +93,7 @@ export class IngestionService {
         status: 'awaiting_user_confirm',
         ocrText: ocrResult.text,
         phash: phash,
-        candidateMatches: ocrResult.candidates as any,
+        candidateMatches: candidates as any,
       },
     });
 

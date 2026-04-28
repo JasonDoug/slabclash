@@ -7,12 +7,14 @@ import { CVService } from './cv/cv.service';
 import { MockCVAdapter } from './cv/mock-cv.adapter';
 import { GoogleVisionAdapter } from './cv/google-vision.adapter';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MatchCandidateService } from './match-candidate.service';
 
 @Module({
   imports: [PrismaModule, StorageModule, ConfigModule],
   controllers: [IngestionController],
   providers: [
     IngestionService,
+    MatchCandidateService,
     {
       provide: CVService,
       useFactory: (configService: ConfigService) => {

@@ -3,6 +3,7 @@ import { IngestionService } from './ingestion.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { S3Service } from '../storage/s3.service';
 import { CVService } from './cv/cv.service';
+import { MatchCandidateService } from './match-candidate.service';
 import * as imghash from 'imghash';
 
 jest.mock('imghash');
@@ -30,6 +31,10 @@ describe('IngestionService', () => {
     extractOCR: jest.fn(),
   };
 
+  const mockMatchCandidateService = {
+    findCandidates: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -37,6 +42,7 @@ describe('IngestionService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: S3Service, useValue: mockS3Service },
         { provide: CVService, useValue: mockCVService },
+        { provide: MatchCandidateService, useValue: mockMatchCandidateService },
       ],
     }).compile();
 

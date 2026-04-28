@@ -1,0 +1,22 @@
+[
+  { "playerId": "p1", "playerName": "Marcus Ramirez", "year": 2018, "setName": "Topps" },
+  { "playerId": "p2", "playerName": "Shohei Ohtani", "year": 2018, "setName": "Topps Heritage" },
+  { "playerId": "p3", "playerName": "Mike Trout", "year": 2011, "setName": "Topps Update" },
+  { "playerId": "p4", "playerName": "Ronald Acuña Jr.", "year": 2018, "setName": "Topps Chrome" },
+  { "playerId": "p5", "playerName": "Juan Soto", "year": 2018, "setName": "Topps Series 2" },
+  { "playerId": "p6", "playerName": "Fernando Tatis Jr.", "year": 2019, "setName": "Topps Series 2" },
+  { "playerId": "p7", "playerName": "Vladimir Guerrero Jr.", "year": 2019, "setName": "Topps Series 2" },
+  { "playerId": "p8", "playerName": "Aaron Judge", "year": 2017, "setName": "Topps Chrome" },
+  { "playerId": "p9", "playerName": "Bryce Harper", "year": 2012, "setName": "Topps Series 2" },
+  { "playerId": "p10", "playerName": "Mookie Betts", "year": 2014, "setName": "Topps Update" },
+  { "playerId": "p11", "playerName": "Jacob deGrom", "year": 2014, "setName": "Topps Update" },
+  { "playerId": "p12", "playerName": "Clayton Kershaw", "year": 2008, "setName": "Topps Update" },
+  { "playerId": "p13", "playerName": "Justin Verlander", "year": 2005, "setName": "Topps Series 1" },
+  { "playerId": "p14", "playerName": "Miguel Cabrera", "year": 2000, "setName": "Topps Traded" },
+  { "playerId": "p15", "playerName": "Albert Pujols", "year": 2001, "setName": "Topps Series 2" },
+  { "playerId": "p16", "playerName": "Ichiro Suzuki", "year": 2001, "setName": "Topps Series 2" },
+  { "playerId": "p17", "playerName": "Derek Jeter", "year": 1993, "setName": "Topps" },
+  { "playerId": "p18", "playerName": "Ken Griffey Jr.", "year": 1989, "setName": "Upper Deck" },
+  { "playerId": "p19", "playerName": "Barry Bonds", "year": 1986, "setName": "Topps Traded" },
+  { "playerId": "p20", "playerName": "Rickey Henderson", "year": 1980, "setName": "Topps" }
+]

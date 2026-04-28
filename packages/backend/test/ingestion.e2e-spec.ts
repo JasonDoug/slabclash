@@ -74,6 +74,9 @@ describe('Ingestion (e2e)', () => {
     expect(processRes.body.status).toBe('awaiting_user_confirm');
     expect(processRes.body.ocrText).toContain('MOCK OCR TEXT');
     expect(processRes.body.phash).toBeDefined();
+    expect(processRes.body.candidateMatches).toBeDefined();
+    expect(processRes.body.candidateMatches.length).toBeGreaterThan(0);
+    expect(processRes.body.candidateMatches[0].playerName).toBe('Marcus Ramirez');
 
     // 4. Check status
     const statusRes = await request(app.getHttpServer())
@@ -84,5 +87,6 @@ describe('Ingestion (e2e)', () => {
     expect(statusRes.body.status).toBe('awaiting_user_confirm');
     expect(statusRes.body.ocrText).toBe(processRes.body.ocrText);
     expect(statusRes.body.phash).toBe(processRes.body.phash);
+    expect(statusRes.body.candidateMatches[0].playerName).toBe('Marcus Ramirez');
   });
 });
