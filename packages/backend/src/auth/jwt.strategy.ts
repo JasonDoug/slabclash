@@ -23,6 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
     
     // Passport automatically attaches this returned object to the Request (req.user)
-    return { userId: payload.userId, username: payload.username };
+    return { id: payload.userId, username: payload.username };
   }
 }
