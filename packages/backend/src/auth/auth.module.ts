@@ -11,7 +11,8 @@ import { PrismaModule } from '../prisma/prisma.module';
     PrismaModule,
     PassportModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'super-secret-key-change-me-in-production',
+      secret:
+        process.env.JWT_SECRET || 'super-secret-key-change-me-in-production',
       signOptions: { expiresIn: '1d' },
     }),
   ],

@@ -34,11 +34,23 @@ describe('AuthController', () => {
 
   describe('signup', () => {
     it('should call authService.signup and return result', async () => {
-      const dto: SignupDto = { username: 'testuser', email: 'test@example.com', password: 'password123' };
-      const expectedResult = { id: 'uuid', username: 'testuser', email: 'test@example.com', createdAt: new Date(), updatedAt: new Date(), reputationScore: 0, inAppCurrencyBalance: 1000 };
-      
+      const dto: SignupDto = {
+        username: 'testuser',
+        email: 'test@example.com',
+        password: 'password123',
+      };
+      const expectedResult = {
+        id: 'uuid',
+        username: 'testuser',
+        email: 'test@example.com',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        reputationScore: 0,
+        inAppCurrencyBalance: 1000,
+      };
+
       mockAuthService.signup.mockResolvedValue(expectedResult);
-      
+
       const result = await controller.signup(dto);
       expect(authService.signup).toHaveBeenCalledWith(dto);
       expect(result).toEqual(expectedResult);
@@ -47,11 +59,17 @@ describe('AuthController', () => {
 
   describe('login', () => {
     it('should call authService.login and return result', async () => {
-      const dto: LoginDto = { email: 'test@example.com', password: 'password123' };
-      const expectedResult = { accessToken: 'token', user: { id: 'uuid', username: 'testuser', email: 'test@example.com' } };
-      
+      const dto: LoginDto = {
+        email: 'test@example.com',
+        password: 'password123',
+      };
+      const expectedResult = {
+        accessToken: 'token',
+        user: { id: 'uuid', username: 'testuser', email: 'test@example.com' },
+      };
+
       mockAuthService.login.mockResolvedValue(expectedResult);
-      
+
       const result = await controller.login(dto);
       expect(authService.login).toHaveBeenCalledWith(dto);
       expect(result).toEqual(expectedResult);

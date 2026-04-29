@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
@@ -20,7 +24,9 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('User with that email or username already exists');
+      throw new ConflictException(
+        'User with that email or username already exists',
+      );
     }
 
     const salt = await bcrypt.genSalt(10);

@@ -66,9 +66,11 @@ model Card {
   serialNumber         String?
   conditionReported    ConditionReported
   conditionEstimatedScore Int?
+  playerStats          Float?
   marketValueCents     Int?
   rarity               Rarity
   powerScore           Int?
+  ratingConfigVersion  String?
   provenance           Json?
   imageFrontKey        String
   imageBackKey         String?
@@ -98,4 +100,14 @@ model RatingJob {
   cardId    String
   status    String   @default("pending")
   createdAt DateTime @default(now())
+}
+
+model RatingConfig {
+  id                  String   @id @default(uuid())
+  version             String   @unique
+  isActive            Boolean  @default(false)
+  weights             Json
+  normalizationBounds Json
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }

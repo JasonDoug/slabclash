@@ -19,7 +19,9 @@ export class S3Service {
     const region = this.configService.get<string>('AWS_REGION');
     const endpoint = this.configService.get<string>('S3_ENDPOINT');
     const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>('AWS_SECRET_ACCESS_KEY');
+    const secretAccessKey = this.configService.get<string>(
+      'AWS_SECRET_ACCESS_KEY',
+    );
     this.bucketName = this.configService.get<string>('S3_BUCKET_NAME');
 
     this.s3Client = new S3Client({
@@ -34,7 +36,10 @@ export class S3Service {
     });
   }
 
-  async getPresignedUploadUrl(key: string, contentType?: string): Promise<string> {
+  async getPresignedUploadUrl(
+    key: string,
+    contentType?: string,
+  ): Promise<string> {
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
       Key: key,
@@ -45,7 +50,10 @@ export class S3Service {
       // URL expires in 15 minutes
       return await getSignedUrl(this.s3Client, command, { expiresIn: 900 });
     } catch (error) {
-      this.logger.error(`Failed to generate presigned URL for key ${key}`, error.stack);
+      this.logger.error(
+        `Failed to generate presigned URL for key ${key}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -60,7 +68,10 @@ export class S3Service {
       // URL expires in 15 minutes
       return await getSignedUrl(this.s3Client, command, { expiresIn: 900 });
     } catch (error) {
-      this.logger.error(`Failed to generate presigned download URL for key ${key}`, error.stack);
+      this.logger.error(
+        `Failed to generate presigned download URL for key ${key}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -71,7 +82,10 @@ export class S3Service {
       const response = await axios.get(url, { responseType: 'arraybuffer' });
       return Buffer.from(response.data);
     } catch (error) {
-      this.logger.error(`Failed to download object from URL for key ${key}`, error.stack);
+      this.logger.error(
+        `Failed to download object from URL for key ${key}`,
+        error.stack,
+      );
       throw error;
     }
   }

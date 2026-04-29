@@ -113,7 +113,7 @@ export class IngestionService {
     // Compute pHash (with fallback for dev)
     let phash: string;
     try {
-      phash = (await imghash.hash(frontImageBuffer)) as string;
+      phash = await imghash.hash(frontImageBuffer);
     } catch (e) {
       // Placeholder pHash using SHA256 for dev/test environments if imghash fails
       phash = createHash('sha256').update(frontImageBuffer).digest('hex');
@@ -160,6 +160,8 @@ export class IngestionService {
     variant: string | undefined,
     conditionReported: ConditionReported,
     confirm: boolean,
+    playerStats?: number,
+    marketValueCents?: number,
   ) {
     const job = await this.prisma.cardIngestionJob.findUnique({
       where: { id: scanJobId },
@@ -221,6 +223,8 @@ export class IngestionService {
       imageBackKey: job.imageBackKey,
       phash: job.phash,
       ingestionStatus,
+      playerStats,
+      marketValueCents,
     });
 
     // Update job status
@@ -229,24 +233,50 @@ export class IngestionService {
       data: { status: ingestionStatus },
     });
 
-    // Try synchronous rating calculation, fall back to queued job
-    let powerScore: number | null = null;
-    try {
-      powerScore = this.ratingService.calculatePowerScore(card.id);
-    } catch (e) {
-      this.logger.error(
-        `Failed to calculate power score for card ${card.id}`,
-        e.stack,
-      );
+    // Calculate rating using new rating engine
+    const cardForRating = await this.prisma.card.findUnique({
+      where: { id: card.id },
+      select: {
+        id: true,
+        rarity: true,
+        playerStats: true,
+        marketValueCents: true,
+        conditionEstimatedScore: true,
+      },
+    });
+
+    if (!cardForRating) {
+      throw new NotFoundException('Card not found after creation');
     }
 
-    if (powerScore === null) {
-      await this.ratingService.scheduleRating(card.id);
-    } else {
+    const ratingDto = {
+      card: {
+        id: cardForRating.id,
+        playerStats: cardForRating.playerStats ?? 50, // Fallback to midpoint of 0-100
+        marketValueCents: cardForRating.marketValueCents ?? undefined,
+        rarity: cardForRating.rarity,
+        conditionEstimatedScore:
+          cardForRating.conditionEstimatedScore ?? undefined,
+        momentum: 0, // Default, can be updated later
+      },
+    };
+
+    const powerScore: number | null = null;
+    try {
+      const ratingResult = await this.ratingService.calculate(ratingDto);
       await this.prisma.card.update({
         where: { id: card.id },
-        data: { powerScore },
+        data: {
+          powerScore: ratingResult.powerScore,
+          ratingConfigVersion: ratingResult.ratingConfigVersion,
+        },
       });
+    } catch (e) {
+      this.logger.error(
+        `Failed to calculate rating for card ${card.id}, scheduling job`,
+        e.stack,
+      );
+      await this.ratingService.scheduleRating(card.id);
     }
 
     return {

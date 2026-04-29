@@ -134,7 +134,9 @@ describe('IngestionService', () => {
         text: 'EXTRACTED TEXT',
         candidates: [{ name: 'Test Card' }],
       });
-      mockMatchCandidateService.findCandidates.mockResolvedValue([{ playerId: 'p1', playerName: 'Test Card', confidence: 0.9 }]);
+      mockMatchCandidateService.findCandidates.mockResolvedValue([
+        { playerId: 'p1', playerName: 'Test Card', confidence: 0.9 },
+      ]);
       (imghash.hash as jest.Mock).mockResolvedValue('f1f1f1f1');
 
       mockPrismaService.cardIngestionJob.update.mockResolvedValue({
@@ -180,7 +182,10 @@ describe('IngestionService', () => {
         candidateMatches: [{ playerId, confidence: 0.9 }],
       });
 
-      mockPrismaService.player.findUnique.mockResolvedValue({ id: playerId, name: 'Test Player' });
+      mockPrismaService.player.findUnique.mockResolvedValue({
+        id: playerId,
+        name: 'Test Player',
+      });
       mockCardService.createCard.mockResolvedValue({ id: 'card-1' });
       mockPrismaService.cardIngestionJob.update.mockResolvedValue({});
     });
@@ -199,14 +204,16 @@ describe('IngestionService', () => {
         true,
       );
 
-      expect(mockCardService.createCard).toHaveBeenCalledWith(expect.objectContaining({
-        userId,
-        playerId,
-        year: 2024,
-        setName: 'Topps',
-        conditionReported: ConditionReported.near_mint,
-        ingestionStatus: 'verified',
-      }));
+      expect(mockCardService.createCard).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId,
+          playerId,
+          year: 2024,
+          setName: 'Topps',
+          conditionReported: ConditionReported.near_mint,
+          ingestionStatus: 'verified',
+        }),
+      );
 
       expect(mockPrismaService.cardIngestionJob.update).toHaveBeenCalledWith({
         where: { id: scanJobId },

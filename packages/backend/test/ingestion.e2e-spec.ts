@@ -98,7 +98,7 @@ describe('Ingestion (e2e)', () => {
       expect(statusRes.body.candidateMatches[0].playerName).toBe(
         'Marcus Ramirez',
       );
-      
+
       const playerId = 'test-player-id';
       // Create a player for testing confirmation
       await prisma.player.upsert({
@@ -122,13 +122,15 @@ describe('Ingestion (e2e)', () => {
         .expect(201);
 
       expect(confirmRes.body.cardId).toBeDefined();
-      
+
       // Cleanup player
       await prisma.card.deleteMany({ where: { userId } });
       await prisma.player.delete({ where: { id: playerId } });
     } catch (error) {
       if (error.response?.status === 507) {
-        console.warn('MinIO insufficient storage (507), skipping remaining e2e steps');
+        console.warn(
+          'MinIO insufficient storage (507), skipping remaining e2e steps',
+        );
       } else {
         throw error;
       }

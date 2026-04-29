@@ -10,9 +10,9 @@ A sports trading card battle app built with NestJS, React Native, and Prisma.
 
 ## Prerequisites
 
-- Node.js (>= 18)
+- Node.js (>= 20)
 - Docker & Docker Compose
-- Yarn (installed via `corepack enable yarn`)
+- Yarn (v4+ configured via `.yarnrc.yml`)
 
 ## Getting Started
 
@@ -21,7 +21,7 @@ A sports trading card battle app built with NestJS, React Native, and Prisma.
    yarn install
    ```
 
-2. **Start infrastructure (Postgres & Redis):**
+2. **Start infrastructure (Postgres, Redis, MinIO):**
    ```bash
    yarn db:up
    ```
@@ -44,7 +44,42 @@ A sports trading card battle app built with NestJS, React Native, and Prisma.
 
 ## API Endpoints
 
-- **GET /health**: Check backend and database connectivity.
+### Auth
+- **POST /auth/signup**: Create account (username, email, password)
+- **POST /auth/login**: Login and receive JWT token
+
+### Scan & Ingestion
+- **POST /v1/scan/upload**: Get presigned S3 URLs for front/back card images
+- **POST /v1/scan/process/:scanJobId**: Process uploaded images (OCR + pHash + candidate matching)
+- **GET /v1/scan/status/:scanJobId**: Check scan job status and view candidates
+- **POST /v1/scan/confirm/:scanJobId**: Confirm scan metadata and create Card record
+
+### Rating Engine
+- **POST /v1/rating/calc**: Calculate power score for a card given its attributes and a rating configuration.
+
+### Cards & Collection
+- **GET /v1/cards/:cardId**: View card details with power score and provenance
+
+### Admin (Planned)
+- **GET /admin/ingestion/queue**: List pending ingestion jobs
+- **POST /admin/ingestion/:jobId/approve**: Approve ingestion job
+- **POST /admin/ingestion/:jobId/reject**: Reject ingestion job
+
+## Data Models
+
+Key Prisma models (see `packages/backend/prisma/schema.prisma`):
+- **User**: id, username, email, passwordHash, reputationScore, inAppCurrencyBalance
+- **Card**: id, userId, playerId, year, setName, variant, serialNumber, conditionReported, conditionEstimatedScore, playerStats, marketValueCents, rarity, powerScore, ratingConfigVersion, imageFrontKey, imageBackKey, phash, ingestionStatus
+- **Player**: id, name (referenced by Card)
+- **CardIngestionJob**: id, userId, imageFrontKey, imageBackKey, status, ocrText, phash, candidateMatches
+- **RatingJob**: id, cardId, status (for queued rating recalculations)
+- **RatingConfig**: id, version, isActive, weights, normalizationBounds
+
+## Manual Review Thresholds
+
+Cards are automatically flagged for manual review based on condition:
+- **poor** or **fair** condition → `ingestionStatus: "flagged"`
+- **near_mint**, **excellent**, **good**, **mint** → `ingestionStatus: "verified"` (auto-approved)
 
 ## Development Commands
 
