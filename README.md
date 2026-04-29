@@ -44,21 +44,37 @@ A sports trading card battle app built with NestJS, React Native, and Prisma.
 
 ## API Endpoints
 
+All endpoints except Auth require a `Bearer <JWT>` token in the `Authorization` header.
+
 ### Auth
-- **POST /auth/signup**: Create account (username, email, password)
-- **POST /auth/login**: Login and receive JWT token
+- **POST /auth/signup**: Create account.
+  - Body: `{ username, email, password }`
+- **POST /auth/login**: Login and receive JWT token.
+  - Body: `{ email, password }`
+  - Response: `{ access_token }`
 
 ### Scan & Ingestion
-- **POST /v1/scan/upload**: Get presigned S3 URLs for front/back card images
-- **POST /v1/scan/process/:scanJobId**: Process uploaded images (OCR + pHash + candidate matching)
-- **GET /v1/scan/status/:scanJobId**: Check scan job status and view candidates
-- **POST /v1/scan/confirm/:scanJobId**: Confirm scan metadata and create Card record
+- **POST /v1/scan/upload**: Get presigned S3 URLs for front/back card images.
+  - Body: `{ frontFileName, backFileName? }`
+- **POST /v1/scan/process/:scanJobId**: Triggers OCR + pHash + candidate matching.
+- **GET /v1/scan/status/:scanJobId**: Check scan job status and view identified candidate metadata.
+- **POST /v1/scan/confirm/:scanJobId**: Confirm metadata and create Card record.
+  - Body: `{ playerId, year, setName, variant?, conditionReported, confirm: true, playerStats?, marketValueCents? }`
+  - Side Effect: Schedules a rating job for the new card.
 
 ### Rating Engine
-- **POST /v1/rating/calc**: Calculate power score for a card given its attributes and a rating configuration.
+- **POST /v1/rating/calc**: Calculate power score for a card given its attributes.
+  - Body: `{ card: { id, playerStats, marketValueCents?, rarity, conditionEstimatedScore?, momentum? }, ratingConfigVersion? }`
+  - Response: `{ powerScore, ratingConfigVersion, breakdown: [...] }`
 
 ### Cards & Collection
-- **GET /v1/cards/:cardId**: View card details with power score and provenance
+- **GET /v1/users/:userId/cards**: List user's cards with filtering and pagination.
+  - Query Params: `page`, `limit`, `rarity`, `setName` (case-insensitive), `year`, `playerId`.
+  - Response: `{ data: Card[], pagination: { total, page, limit, totalPages } }`
+- **GET /v1/cards/:cardId**: View card details with `powerBreakdown` and presigned image URLs.
+- **PATCH /v1/cards/:cardId/metadata**: Update card metadata.
+  - Body: `{ setName?, variant?, conditionReported? }`
+  - Side Effect: If `conditionReported` changes, a new rating job is scheduled.
 
 ### Admin (Planned)
 - **GET /admin/ingestion/queue**: List pending ingestion jobs
