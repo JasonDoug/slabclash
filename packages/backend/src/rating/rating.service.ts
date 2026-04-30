@@ -84,6 +84,32 @@ export class RatingService {
       config.normalizationBounds as unknown as NormalizationBounds;
     const card = dto.card;
 
+    // Normalize weights to sum to 1
+    const totalWeight =
+      weights.playerStats +
+      weights.marketValueCents +
+      weights.rarity +
+      weights.conditionEstimatedScore +
+      weights.momentum;
+
+    const normalizedWeights: RatingWeights =
+      totalWeight > 0
+        ? {
+            playerStats: weights.playerStats / totalWeight,
+            marketValueCents: weights.marketValueCents / totalWeight,
+            rarity: weights.rarity / totalWeight,
+            conditionEstimatedScore:
+              weights.conditionEstimatedScore / totalWeight,
+            momentum: weights.momentum / totalWeight,
+          }
+        : {
+            playerStats: 0.2,
+            marketValueCents: 0.2,
+            rarity: 0.2,
+            conditionEstimatedScore: 0.2,
+            momentum: 0.2,
+          };
+
     const breakdown: RatingBreakdownItem[] = [];
     let rawScore = 0;
 
@@ -110,7 +136,7 @@ export class RatingService {
     processFactor(
       'playerStats',
       card.playerStats,
-      weights.playerStats,
+      normalizedWeights.playerStats,
       normalizationBounds.playerStats,
     );
 
@@ -123,7 +149,7 @@ export class RatingService {
     processFactor(
       'marketValueCents',
       marketValue,
-      weights.marketValueCents,
+      normalizedWeights.marketValueCents,
       normalizationBounds.marketValueCents,
     );
 
@@ -132,7 +158,7 @@ export class RatingService {
     processFactor(
       'rarity',
       rarityNumeric,
-      weights.rarity,
+      normalizedWeights.rarity,
       normalizationBounds.rarity,
     );
 
@@ -145,7 +171,7 @@ export class RatingService {
     processFactor(
       'conditionEstimatedScore',
       condition,
-      weights.conditionEstimatedScore,
+      normalizedWeights.conditionEstimatedScore,
       normalizationBounds.conditionEstimatedScore,
     );
 
@@ -154,11 +180,11 @@ export class RatingService {
     processFactor(
       'momentum',
       momentum,
-      weights.momentum,
+      normalizedWeights.momentum,
       normalizationBounds.momentum,
     );
 
-    const powerScore = Math.round(rawScore * 1000);
+    const powerScore = Math.max(0, Math.min(1000, Math.round(rawScore * 1000)));
 
     return {
       powerScore,
