@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { IngestionModule } from './ingestion/ingestion.module';
 import { RatingModule } from './rating/rating.module';
 import { CardModule } from './card/card.module';
+import { LineupModule } from './lineup/lineup.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { CardModule } from './card/card.module';
     IngestionModule,
     RatingModule,
     CardModule,
+    LineupModule,
   ],
 })
 export class AppModule {}

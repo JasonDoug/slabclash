@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+packages/*/node_modules/
+
+# Build output
+packages/*/dist/
+dist/
+
+# Environment files
+.env
+.env.local
+packages/*/.env
+
+# Yarn
+.yarn/install-state.gz
+.pnp.*
+.pnp.js
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Test coverage
+coverage/
+*.lcov
+
+# Prisma
+packages/*/prisma/migrations/
