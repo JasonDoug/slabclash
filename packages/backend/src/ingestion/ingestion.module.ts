@@ -12,7 +12,13 @@ import { CardModule } from '../card/card.module';
 import { RatingModule } from '../rating/rating.module';
 
 @Module({
-  imports: [PrismaModule, StorageModule, ConfigModule, CardModule, RatingModule],
+  imports: [
+    PrismaModule,
+    StorageModule,
+    ConfigModule,
+    CardModule,
+    RatingModule,
+  ],
   controllers: [IngestionController],
   providers: [
     IngestionService,

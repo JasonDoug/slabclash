@@ -34,4 +34,12 @@ export class ConfirmScanDto {
 
   @IsBoolean()
   confirm: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  playerStats?: number;
+
+  @IsOptional()
+  @IsNumber()
+  marketValueCents?: number;
 }

@@ -55,6 +55,8 @@ export class IngestionController {
       dto.variant,
       dto.conditionReported,
       dto.confirm,
+      dto.playerStats,
+      dto.marketValueCents,
     );
   }
 }

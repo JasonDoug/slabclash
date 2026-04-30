@@ -13,7 +13,11 @@
 
 ### Architecture
 The project follows a monorepo structure under the `packages/` directory:
-- `backend/`: NestJS server handling business logic, authentication, and database interactions.
+- `backend/`: NestJS server handling business logic, authentication, and database interactions. Core modules include:
+    - `AuthModule`: JWT-based identity management.
+    - `IngestionModule`: Card scanning, OCR, pHash, and metadata confirmation.
+    - `RatingModule`: Deterministic power score calculation engine.
+    - `CardModule`: User collection and card provenance management.
 - `mobile/`: React Native mobile application.
 - `shared/`: Common types, utilities, and constants shared across packages.
 

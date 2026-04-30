@@ -34,7 +34,9 @@ describe('HealthController', () => {
   });
 
   it('should return health status error when DB check fails', async () => {
-    jest.spyOn(prisma, '$queryRaw').mockRejectedValueOnce(new Error('DB Error'));
+    jest
+      .spyOn(prisma, '$queryRaw')
+      .mockRejectedValueOnce(new Error('DB Error'));
     const result = await controller.getHealth();
     expect(result.status).toBe('error');
     expect(result.database).toBe('disconnected');

@@ -9,7 +9,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'super-secret-key-change-me-in-production',
+      secretOrKey:
+        process.env.JWT_SECRET || 'super-secret-key-change-me-in-production',
     });
   }
 
@@ -17,11 +18,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.userId },
     });
-    
+
     if (!user) {
       throw new UnauthorizedException();
     }
-    
+
     // Passport automatically attaches this returned object to the Request (req.user)
     return { id: payload.userId, username: payload.username };
   }
