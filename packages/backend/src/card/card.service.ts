@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { RatingService } from '../rating/rating.service';
 import { S3Service } from '../storage/s3.service';
+import { RatingBreakdownItem } from '../rating/dto/calc-rating-response.dto';
 import {
   ConditionReported,
   Rarity,
@@ -148,7 +149,7 @@ export class CardService {
       : null;
 
     // Compute rating breakdown if card has necessary data
-    let powerBreakdown = null;
+    let powerBreakdown: RatingBreakdownItem[] | null = null;
     if (card.playerStats !== null && card.ratingConfigVersion) {
       try {
         const ratingDto = {

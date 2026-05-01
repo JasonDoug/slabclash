@@ -1,13 +1,28 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
+
+interface Slots {
+  [position: string]: string;
+}
+
+interface RarityCounts {
+  [rarity: string]: number;
+}
 
 @Injectable()
 export class LineupService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createLineup(userId: string, name: string, slots: Record<string, string>) {
+  async createLineup(userId: string, name: string, slots: Slots) {
     const cardIds = Object.values(slots);
-    
+
+    // Check for duplicate card IDs in slots
+    const uniqueCardIds = [...new Set(cardIds)];
+    if (uniqueCardIds.length !== cardIds.length) {
+      throw new BadRequestException('Duplicate cards are not allowed in lineup slots');
+    }
+
     const cards = await this.prisma.card.findMany({
       where: {
         id: { in: cardIds },
@@ -26,16 +41,16 @@ export class LineupService {
         acc[card.rarity] = (acc[card.rarity] || 0) + 1;
         return acc;
       },
-      {} as Record<string, number>,
+      {} as RarityCounts,
     );
 
     return this.prisma.lineup.create({
       data: {
         userId,
         name,
-        slots: slots as any,
+        slots: slots as Prisma.InputJsonValue,
         aggregatePowerScore,
-        rarityCounts: rarityCounts as any,
+        rarityCounts: rarityCounts as Prisma.InputJsonValue,
       },
     });
   }
