@@ -139,15 +139,16 @@ enum MatchStatus {
 }
 
 model Match {
-  id             String     @id @default(uuid())
-  lineupA        Lineup     @relation("LineupA", fields: [lineupAId], references: [id])
-  lineupAId      String
-  lineupB        Lineup     @relation("LineupB", fields: [lineupBId], references: [id])
-  lineupBId      String
-  matchType      MatchType
-  status         MatchStatus @default(pending)
-  matchSeed      String
-  winnerId       String?
-  createdAt      DateTime   @default(now())
-  completedAt    DateTime?
+  id                 String     @id @default(uuid())
+  lineupA            Lineup     @relation("LineupA", fields: [lineupAId], references: [id])
+  lineupAId          String
+  lineupB            Lineup     @relation("LineupB", fields: [lineupBId], references: [id])
+  lineupBId          String
+  matchType          MatchType
+  status             MatchStatus @default(pending)
+  matchSeed          String
+  winnerId           String?
+  resolutionResults  Json?
+  createdAt          DateTime   @default(now())
+  completedAt        DateTime?
 }

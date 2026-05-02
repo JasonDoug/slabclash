@@ -194,7 +194,7 @@ export class MatchmakingService {
     await this.redis.del(this.getQueueEntryKey(userAId));
     await this.redis.del(this.getQueueEntryKey(userBId));
 
-    const matchSeed = Math.random().toString(36).substring(2, 15);
+    const matchSeed = require('crypto').randomBytes(8).toString('hex');
 
     const match = await this.prisma.match.create({
       data: {
@@ -291,7 +291,7 @@ export class MatchmakingService {
       return { matched: false };
     }
 
-    const matchSeed = Math.random().toString(36).substring(2, 15);
+    const matchSeed = require('crypto').randomBytes(8).toString('hex');
 
     const match = await this.prisma.match.create({
       data: {
