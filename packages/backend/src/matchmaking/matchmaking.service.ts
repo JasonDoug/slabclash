@@ -1,0 +1,248 @@
+import { Injectable, Inject, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import Redis from 'ioredis';
+import { MatchType } from './dto/enqueue-matchmaking.dto';
+
+@Injectable()
+export class MatchmakingService {
+  private readonly logger = new Logger(MatchmakingService.name);
+  private readonly BIN_SIZE = 50;
+  private readonly CASUAL_TOLERANCE = 0.05; // 5%
+  private readonly RANKED_TOLERANCE = 0.02; // 2%
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject('REDIS_CLIENT') private readonly redis: Redis,
+  ) {}
+
+  getPowerBin(aggregatePowerScore: number): number {
+    return Math.floor(aggregatePowerScore / this.BIN_SIZE);
+  }
+
+  getQueueKey(matchType: MatchType, powerBin: number): string {
+    return `matchmaking:${matchType}:bin:${powerBin}`;
+  }
+
+  getQueueEntryKey(userId: string): string {
+    return `matchmaking:entry:${userId}`;
+  }
+
+  getTolerance(matchType: MatchType): number {
+    return matchType === MatchType.casual ? this.CASUAL_TOLERANCE : this.RANKED_TOLERANCE;
+  }
+
+  async enqueue(userId: string, lineupId: string, matchType: MatchType): Promise<{ queued: boolean; queuePosition: number }> {
+    const lineup = await this.prisma.lineup.findFirst({
+      where: { id: lineupId, userId },
+    });
+
+    if (!lineup) {
+      throw new NotFoundException('Lineup not found or does not belong to user');
+    }
+
+    if (lineup.aggregatePowerScore === 0) {
+      throw new BadRequestException('Lineup has no power score');
+    }
+
+    const existingEntry = await this.redis.get(this.getQueueEntryKey(userId));
+    if (existingEntry) {
+      throw new BadRequestException('User already in matchmaking queue');
+    }
+
+    const powerBin = this.getPowerBin(lineup.aggregatePowerScore);
+    const queueKey = this.getQueueKey(matchType, powerBin);
+    const timestamp = Date.now();
+
+    await this.redis.zadd(queueKey, timestamp, `${userId}:${lineupId}`);
+
+    await this.redis.setex(
+      this.getQueueEntryKey(userId),
+      1800,
+      JSON.stringify({
+        lineupId,
+        matchType,
+        powerBin,
+        timestamp,
+      }),
+    );
+
+    const rank = await this.redis.zrank(queueKey, `${userId}:${lineupId}`);
+    const queuePosition = rank !== null ? rank + 1 : 1;
+
+    this.logger.log(`User ${userId} enqueued for ${matchType} match with power bin ${powerBin}`);
+
+    return { queued: true, queuePosition };
+  }
+
+  async getStatus(userId: string): Promise<{
+    inQueue: boolean;
+    matchType?: MatchType;
+    queuePosition?: number;
+    powerBin?: number;
+    enqueuedAt?: number;
+  }> {
+    const entryData = await this.redis.get(this.getQueueEntryKey(userId));
+
+    if (!entryData) {
+      return { inQueue: false };
+    }
+
+    const entry = JSON.parse(entryData);
+    const queueKey = this.getQueueKey(entry.matchType as MatchType, entry.powerBin);
+    const rank = await this.redis.zrank(queueKey, `${userId}:${entry.lineupId}`);
+
+    return {
+      inQueue: true,
+      matchType: entry.matchType,
+      queuePosition: rank !== null ? rank + 1 : undefined,
+      powerBin: entry.powerBin,
+      enqueuedAt: entry.timestamp,
+    };
+  }
+
+  async removeFromQueue(userId: string): Promise<boolean> {
+    const entryData = await this.redis.get(this.getQueueEntryKey(userId));
+    if (!entryData) {
+      return false;
+    }
+
+    const entry = JSON.parse(entryData);
+    const queueKey = this.getQueueKey(entry.matchType as MatchType, entry.powerBin);
+
+    await this.redis.zrem(queueKey, `${userId}:${entry.lineupId}`);
+    await this.redis.del(this.getQueueEntryKey(userId));
+
+    return true;
+  }
+
+  async findMatch(userId: string): Promise<{ matched: boolean; matchId?: string }> {
+    const entryData = await this.redis.get(this.getQueueEntryKey(userId));
+    if (!entryData) {
+      return { matched: false };
+    }
+
+    const entry = JSON.parse(entryData);
+    const binsToCheck = [entry.powerBin - 1, entry.powerBin, entry.powerBin + 1];
+
+    for (const bin of binsToCheck) {
+      if (bin < 0) continue;
+
+      const queueKey = this.getQueueKey(entry.matchType as MatchType, bin);
+      const members = await this.redis.zrange(queueKey, 0, 0);
+
+      if (members.length > 0) {
+        const [otherUserId, otherLineupId] = members[0].split(':');
+
+        if (otherUserId === userId) {
+          const nextMembers = await this.redis.zrange(queueKey, 1, 1);
+          if (nextMembers.length === 0) continue;
+          const [nextUserId, nextLineupId] = nextMembers[0].split(':');
+          return this.createMatch(userId, entry.lineupId, nextUserId, nextLineupId, entry.matchType, queueKey, nextMembers[0]);
+        }
+
+        return this.createMatch(userId, entry.lineupId, otherUserId, otherLineupId, entry.matchType, queueKey, members[0]);
+      }
+    }
+
+    return { matched: false };
+  }
+
+  private async createMatch(
+    userAId: string,
+    lineupAId: string,
+    userBId: string,
+    lineupBId: string,
+    matchType: string,
+    queueKey: string,
+    entryToRemove: string,
+  ): Promise<{ matched: boolean; matchId?: string }> {
+    await this.redis.zrem(queueKey, entryToRemove);
+
+    await this.redis.del(this.getQueueEntryKey(userAId));
+    await this.redis.del(this.getQueueEntryKey(userBId));
+
+    const matchSeed = Math.random().toString(36).substring(2, 15);
+
+    const match = await this.prisma.match.create({
+      data: {
+        lineupAId,
+        lineupBId,
+        matchType: matchType as MatchType,
+        matchSeed,
+        status: 'pending',
+      },
+    });
+
+    this.logger.log(`Match created: ${match.id} between ${userAId} and ${userBId}`);
+    this.notifyMatchFound(userAId, userBId, match.id);
+
+    return { matched: true, matchId: match.id };
+  }
+
+  private notifyMatchFound(userAId: string, userBId: string, matchId: string): void {
+    this.logger.log(`Match found! Match ID: ${matchId}, Players: ${userAId}, ${userBId}`);
+  }
+
+  async processQueue(): Promise<{ processed: number; matches: number }> {
+    let processed = 0;
+    let matches = 0;
+
+    const matchTypes = [MatchType.casual, MatchType.ranked];
+
+    for (const matchType of matchTypes) {
+      for (let bin = 0; bin < 100; bin++) {
+        const queueKey = this.getQueueKey(matchType, bin);
+        const count = await this.redis.zcard(queueKey);
+
+        if (count >= 2) {
+          processed += count;
+          const result = await this.findMatchFromBin(queueKey, matchType, bin);
+          if (result.matched) {
+            matches++;
+          }
+        }
+      }
+    }
+
+    return { processed, matches };
+  }
+
+  private async findMatchFromBin(
+    queueKey: string,
+    matchType: MatchType,
+    bin: number,
+  ): Promise<{ matched: boolean; matchId?: string }> {
+    const members = await this.redis.zrange(queueKey, 0, 1);
+
+    if (members.length < 2) {
+      return { matched: false };
+    }
+
+    const [entry1, entry2] = members;
+    const [userAId, lineupAId] = entry1.split(':');
+    const [userBId, lineupBId] = entry2.split(':');
+
+    await this.redis.zrem(queueKey, entry1);
+    await this.redis.zrem(queueKey, entry2);
+
+    await this.redis.del(this.getQueueEntryKey(userAId));
+    await this.redis.del(this.getQueueEntryKey(userBId));
+
+    const matchSeed = Math.random().toString(36).substring(2, 15);
+
+    const match = await this.prisma.match.create({
+      data: {
+        lineupAId,
+        lineupBId,
+        matchType,
+        matchSeed,
+        status: 'pending',
+      },
+    });
+
+    this.logger.log(`Match created from worker: ${match.id}`);
+    this.notifyMatchFound(userAId, userBId, match.id);
+
+    return { matched: true, matchId: match.id };
+  }
+}

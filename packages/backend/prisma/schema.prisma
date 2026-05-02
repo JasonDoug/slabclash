@@ -122,4 +122,32 @@ model Lineup {
   aggregatePowerScore  Float    @default(0)
   rarityCounts         Json
   createdAt            DateTime @default(now())
+  matchesAsA           Match[]  @relation("LineupA")
+  matchesAsB           Match[]  @relation("LineupB")
+}
+
+enum MatchType {
+  casual
+  ranked
+}
+
+enum MatchStatus {
+  pending
+  in_progress
+  completed
+  cancelled
+}
+
+model Match {
+  id             String     @id @default(uuid())
+  lineupA        Lineup     @relation("LineupA", fields: [lineupAId], references: [id])
+  lineupAId      String
+  lineupB        Lineup     @relation("LineupB", fields: [lineupBId], references: [id])
+  lineupBId      String
+  matchType      MatchType
+  status         MatchStatus @default(pending)
+  matchSeed      String
+  winnerId       String?
+  createdAt      DateTime   @default(now())
+  completedAt    DateTime?
 }
