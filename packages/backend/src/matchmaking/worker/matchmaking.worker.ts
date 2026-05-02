@@ -26,7 +26,15 @@ export class MatchmakingWorker implements OnModuleInit {
           this.logger.log(`Processed ${result.processed} entries, created ${result.matches} matches`);
         }
       } catch (error) {
-        this.logger.error('Error in matchmaking worker', error);
+        // Log specific error types for better debugging
+        if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+          this.logger.error('Redis connection error - matchmaking temporarily paused', error.message);
+        } else if (error.name === 'PrismaClientKnownRequestError') {
+          this.logger.error('Database error in matchmaking worker', error.message);
+        } else {
+          this.logger.error('Unexpected error in matchmaking worker', error);
+        }
+        // Worker continues running despite errors - implements graceful degradation
       }
     }, this.POLL_INTERVAL_MS);
   }

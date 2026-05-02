@@ -14,8 +14,9 @@ export class MatchmakingController {
     return this.matchmakingService.enqueue(userId, dto.lineupId, dto.matchType);
   }
 
-  @Get('status/:userId')
-  async getStatus(@Param('userId') userId: string) {
+  @Get('status')
+  async getStatus(@Req() req: any) {
+    const userId = req.user.userId;
     return this.matchmakingService.getStatus(userId);
   }
 

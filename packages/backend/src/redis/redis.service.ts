@@ -59,4 +59,20 @@ export class RedisService {
   async exists(key: string): Promise<number> {
     return this.redis.exists(key);
   }
+
+  async sadd(key: string, ...members: string[]): Promise<number> {
+    return this.redis.sadd(key, ...members);
+  }
+
+  async srem(key: string, ...members: string[]): Promise<number> {
+    return this.redis.srem(key, ...members);
+  }
+
+  async smembers(key: string): Promise<string[]> {
+    return this.redis.smembers(key);
+  }
+
+  async eval(script: string, numKeys: number, ...args: (string | number)[]): Promise<any> {
+    return this.redis.eval(script, numKeys, ...args);
+  }
 }

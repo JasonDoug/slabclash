@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MatchmakingService } from './matchmaking.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { MatchType } from './dto/enqueue-matchmaking.dto';
 
 describe('MatchmakingService', () => {
   let service: MatchmakingService;
@@ -27,6 +28,10 @@ describe('MatchmakingService', () => {
       get: jest.fn(),
       setex: jest.fn(),
       del: jest.fn(),
+      sadd: jest.fn(),
+      srem: jest.fn(),
+      smembers: jest.fn(),
+      eval: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

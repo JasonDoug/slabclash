@@ -9,6 +9,32 @@ export class MatchmakingService {
   private readonly BIN_SIZE = 50;
   private readonly CASUAL_TOLERANCE = 0.05; // 5%
   private readonly RANKED_TOLERANCE = 0.02; // 2%
+  private readonly QUEUE_TTL_SECONDS = 1800; // 30 minutes
+
+  // Lua script for atomic match creation
+  private readonly ATOMIC_MATCH_SCRIPT = `
+    local queueKey = KEYS[1]
+    local entry1Key = KEYS[2]
+    local entry2Key = KEYS[3]
+    local entry1 = ARGV[1]
+    local entry2 = ARGV[2]
+    
+    -- Check if both entries still exist in queue
+    local rank1 = redis.call('ZRANK', queueKey, entry1)
+    local rank2 = redis.call('ZRANK', queueKey, entry2)
+    
+    if rank1 == false or rank2 == false then
+      return nil
+    end
+    
+    -- Atomically remove both from queue and their entry keys
+    redis.call('ZREM', queueKey, entry1)
+    redis.call('ZREM', queueKey, entry2)
+    redis.call('DEL', entry1Key)
+    redis.call('DEL', entry2Key)
+    
+    return 1
+  `;
 
   constructor(
     private readonly prisma: PrismaService,
@@ -25,6 +51,10 @@ export class MatchmakingService {
 
   getQueueEntryKey(userId: string): string {
     return `matchmaking:entry:${userId}`;
+  }
+
+  getActiveBinsKey(matchType: MatchType): string {
+    return `matchmaking:${matchType}:active_bins`;
   }
 
   getTolerance(matchType: MatchType): number {
@@ -57,7 +87,7 @@ export class MatchmakingService {
 
     await this.redis.setex(
       this.getQueueEntryKey(userId),
-      1800,
+      this.QUEUE_TTL_SECONDS,
       JSON.stringify({
         lineupId,
         matchType,
@@ -65,6 +95,9 @@ export class MatchmakingService {
         timestamp,
       }),
     );
+
+    // Track active bin for optimized queue processing
+    await this.redis.sadd(this.getActiveBinsKey(matchType), powerBin.toString());
 
     const rank = await this.redis.zrank(queueKey, `${userId}:${lineupId}`);
     const queuePosition = rank !== null ? rank + 1 : 1;
@@ -190,7 +223,12 @@ export class MatchmakingService {
     const matchTypes = [MatchType.casual, MatchType.ranked];
 
     for (const matchType of matchTypes) {
-      for (let bin = 0; bin < 100; bin++) {
+      // Get active bins to avoid scanning empty ones
+      const activeBinsKey = this.getActiveBinsKey(matchType);
+      const activeBins = await this.redis.smembers(activeBinsKey);
+
+      for (const binStr of activeBins) {
+        const bin = parseInt(binStr, 10);
         const queueKey = this.getQueueKey(matchType, bin);
         const count = await this.redis.zcard(queueKey);
 
@@ -200,6 +238,9 @@ export class MatchmakingService {
           if (result.matched) {
             matches++;
           }
+        } else if (count === 0) {
+          // Remove empty bin from active set
+          await this.redis.srem(activeBinsKey, binStr);
         }
       }
     }
@@ -222,11 +263,33 @@ export class MatchmakingService {
     const [userAId, lineupAId] = entry1.split(':');
     const [userBId, lineupBId] = entry2.split(':');
 
-    await this.redis.zrem(queueKey, entry1);
-    await this.redis.zrem(queueKey, entry2);
+    // Use Lua script for atomic removal from queue
+    const removed = await this.redis.eval(
+      this.ATOMIC_MATCH_SCRIPT,
+      3,
+      queueKey,
+      this.getQueueEntryKey(userAId),
+      this.getQueueEntryKey(userBId),
+      entry1,
+      entry2,
+    );
 
-    await this.redis.del(this.getQueueEntryKey(userAId));
-    await this.redis.del(this.getQueueEntryKey(userBId));
+    // If atomic removal failed, another worker already matched these users
+    if (!removed) {
+      this.logger.warn(`Race condition avoided for ${userAId} and ${userBId}`);
+      return { matched: false };
+    }
+
+    // Validate that both lineups still exist before creating match
+    const [lineupA, lineupB] = await Promise.all([
+      this.prisma.lineup.findUnique({ where: { id: lineupAId } }),
+      this.prisma.lineup.findUnique({ where: { id: lineupBId } }),
+    ]);
+
+    if (!lineupA || !lineupB) {
+      this.logger.warn(`Lineup validation failed for ${lineupAId} or ${lineupBId}`);
+      return { matched: false };
+    }
 
     const matchSeed = Math.random().toString(36).substring(2, 15);
 
