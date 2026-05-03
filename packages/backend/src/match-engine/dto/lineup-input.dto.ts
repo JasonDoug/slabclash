@@ -7,9 +7,5 @@ export class LineupInputDto {
 
   @IsOptional()
   @IsNumber()
-  aggregateMarketValue?: number;
-
-  @IsOptional()
-  @IsNumber()
   aggregateMomentum?: number;
 }

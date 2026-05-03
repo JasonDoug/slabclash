@@ -1,6 +1,7 @@
 import { Injectable, Inject, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import Redis from 'ioredis';
+import crypto from 'crypto';
 import { MatchType } from './dto/enqueue-matchmaking.dto';
 
 @Injectable()
@@ -40,6 +41,10 @@ export class MatchmakingService {
     private readonly prisma: PrismaService,
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
   ) {}
+
+  private generateMatchSeed(): string {
+    return crypto.randomBytes(8).toString('hex');
+  }
 
   getPowerBin(aggregatePowerScore: number): number {
     return Math.floor(aggregatePowerScore / this.BIN_SIZE);
@@ -194,7 +199,7 @@ export class MatchmakingService {
     await this.redis.del(this.getQueueEntryKey(userAId));
     await this.redis.del(this.getQueueEntryKey(userBId));
 
-    const matchSeed = require('crypto').randomBytes(8).toString('hex');
+    const matchSeed = this.generateMatchSeed();
 
     const match = await this.prisma.match.create({
       data: {
@@ -291,7 +296,7 @@ export class MatchmakingService {
       return { matched: false };
     }
 
-    const matchSeed = require('crypto').randomBytes(8).toString('hex');
+    const matchSeed = this.generateMatchSeed();
 
     const match = await this.prisma.match.create({
       data: {

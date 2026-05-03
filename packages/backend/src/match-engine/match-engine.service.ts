@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import seedrandom from 'seedrandom';
@@ -9,7 +9,9 @@ import { MatchEvent } from './interfaces/match-event.interface';
 
 interface LineupInput {
   id?: string;
+  userId?: string;
   slots: Record<string, string>;
+  aggregateMomentum?: number;
   cards?: Array<{ id: string; playerStats: number | null; marketValueCents: number | null }>;
 }
 
@@ -19,15 +21,16 @@ export class MatchEngineService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async resolveMatch(dto: ResolveMatchDto): Promise<ResolutionResult> {
+  async resolveMatch(dto: ResolveMatchDto, requestUserId?: string): Promise<ResolutionResult> {
     let lineupAInput: LineupInput;
     let lineupBInput: LineupInput;
     let matchSeed: string;
     let matchId: string | undefined;
+    let match: any = null;
 
     if (dto.matchId) {
       matchId = dto.matchId;
-      const match = await this.prisma.match.findUnique({
+      match = await this.prisma.match.findUnique({
         where: { id: dto.matchId },
         include: {
           lineupA: true,
@@ -39,9 +42,23 @@ export class MatchEngineService {
         throw new NotFoundException('Match not found');
       }
 
+      // Ownership check: ensure requestUserId matches one of the lineup owners
+      if (requestUserId) {
+        const ownerA = match.lineupA.userId;
+        const ownerB = match.lineupB.userId;
+        if (requestUserId !== ownerA && requestUserId !== ownerB) {
+          throw new ForbiddenException('You do not have permission to resolve this match');
+        }
+      }
+
       if (match.resolutionResults) {
         this.logger.log(`Match ${matchId} already resolved, returning stored results`);
-        return match.resolutionResults as unknown as ResolutionResult;
+        const stored = match.resolutionResults as any;
+        // Normalize resolvedAt from ISO string to Date
+        if (typeof stored.resolvedAt === 'string') {
+          stored.resolvedAt = new Date(stored.resolvedAt);
+        }
+        return stored as ResolutionResult;
       }
 
       matchSeed = match.matchSeed;
@@ -49,8 +66,8 @@ export class MatchEngineService {
       lineupBInput = this.prismaLineupToInput(match.lineupB);
     } else if (dto.lineupA && dto.lineupB && dto.matchSeed) {
       matchSeed = dto.matchSeed;
-      lineupAInput = { slots: dto.lineupA.slots };
-      lineupBInput = { slots: dto.lineupB.slots };
+      lineupAInput = { slots: dto.lineupA.slots, aggregateMomentum: dto.lineupA.aggregateMomentum };
+      lineupBInput = { slots: dto.lineupB.slots, aggregateMomentum: dto.lineupB.aggregateMomentum };
     } else {
       throw new BadRequestException('Invalid input: provide matchId or lineupA + lineupB + matchSeed');
     }
@@ -149,7 +166,7 @@ export class MatchEngineService {
         where: { id: matchId },
         data: {
           status: 'completed',
-          winnerId: winner === 'A' ? lineupAInput.id : winner === 'B' ? lineupBInput.id : undefined,
+          winnerLineupId: winner === 'A' ? lineupAInput.id : winner === 'B' ? lineupBInput.id : undefined,
           completedAt: new Date(),
           resolutionResults: result as unknown as Prisma.InputJsonValue,
         },
@@ -202,9 +219,9 @@ export class MatchEngineService {
       return 'B';
     }
 
-    // Tiebreaker 2: aggregateMomentum
-    const momentumA = (lineupA as any).aggregateMomentum || 0;
-    const momentumB = (lineupB as any).aggregateMomentum || 0;
+    // Tiebreaker 2: aggregateMomentum (from LineupInput, not any cast)
+    const momentumA = lineupA.aggregateMomentum || 0;
+    const momentumB = lineupB.aggregateMomentum || 0;
 
     if (momentumA > momentumB) {
       events.push({
@@ -230,10 +247,12 @@ export class MatchEngineService {
     return suddenDeathResult as 'A' | 'B';
   }
 
-  private prismaLineupToInput(lineup: { id: string; slots: any }): LineupInput {
+  private prismaLineupToInput(lineup: { id: string; slots: any; userId?: string; aggregateMomentum?: number }): LineupInput {
     return {
       id: lineup.id,
+      userId: lineup.userId,
       slots: lineup.slots as Record<string, string>,
+      aggregateMomentum: lineup.aggregateMomentum || 0,
     };
   }
 }
