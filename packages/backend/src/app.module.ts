@@ -11,6 +11,7 @@ import { LineupModule } from './lineup/lineup.module';
 import { MatchmakingModule } from './matchmaking/matchmaking.module';
 import { MatchmakingWorker } from './matchmaking/worker/matchmaking.worker';
 import { MatchEngineModule } from './match-engine/match-engine.module';
+import { RealtimeModule } from './realtime/realtime.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MatchEngineModule } from './match-engine/match-engine.module';
     LineupModule,
     MatchmakingModule,
     MatchEngineModule,
+    RealtimeModule,
   ],
   providers: [MatchmakingWorker],
 })
