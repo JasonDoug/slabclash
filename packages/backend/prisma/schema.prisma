@@ -120,10 +120,13 @@ model Lineup {
   name                 String
   slots                Json
   aggregatePowerScore  Float    @default(0)
+  aggregateMomentum   Float    @default(0)
   rarityCounts         Json
   createdAt            DateTime @default(now())
   matchesAsA           Match[]  @relation("LineupA")
   matchesAsB           Match[]  @relation("LineupB")
+
+  @@index([userId])
 }
 
 enum MatchType {
@@ -139,15 +142,19 @@ enum MatchStatus {
 }
 
 model Match {
-  id             String     @id @default(uuid())
-  lineupA        Lineup     @relation("LineupA", fields: [lineupAId], references: [id])
-  lineupAId      String
-  lineupB        Lineup     @relation("LineupB", fields: [lineupBId], references: [id])
-  lineupBId      String
-  matchType      MatchType
-  status         MatchStatus @default(pending)
-  matchSeed      String
-  winnerId       String?
-  createdAt      DateTime   @default(now())
-  completedAt    DateTime?
+  id                 String     @id @default(uuid())
+  lineupA            Lineup     @relation("LineupA", fields: [lineupAId], references: [id])
+  lineupAId          String
+  lineupB            Lineup     @relation("LineupB", fields: [lineupBId], references: [id])
+  lineupBId          String
+  matchType          MatchType
+  status             MatchStatus @default(pending)
+  matchSeed          String
+  winnerLineupId     String?
+  resolutionResults  Json?
+  createdAt          DateTime   @default(now())
+  completedAt        DateTime?
+
+  @@index([lineupAId])
+  @@index([lineupBId])
 }

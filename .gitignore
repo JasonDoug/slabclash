@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-packages/*/node_modules/
+/packages/*/node_modules/*
 
 # Build output
 packages/*/dist/
@@ -37,4 +37,4 @@ coverage/
 *.lcov
 
 # Prisma
-packages/*/prisma/migrations/
+# packages/*/prisma/migrations/ -- removed: migrations should be committed

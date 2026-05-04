@@ -83,8 +83,26 @@ export class LineupService {
       throw new NotFoundException('Lineup not found');
     }
 
-    return this.prisma.lineup.delete({
-      where: { id: lineupId },
+    // Check for existing matches referencing this lineup
+    const existingMatch = await this.prisma.match.findFirst({
+      where: {
+        OR: [{ lineupAId: lineupId }, { lineupBId: lineupId }],
+      },
     });
+
+    if (existingMatch) {
+      throw new BadRequestException('Cannot delete lineup that is part of an existing match');
+    }
+
+    try {
+      return await this.prisma.lineup.delete({
+        where: { id: lineupId },
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+        throw new BadRequestException('Cannot delete lineup that is part of an existing match');
+      }
+      throw error;
+    }
   }
 }

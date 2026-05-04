@@ -10,6 +10,7 @@ import { CardModule } from './card/card.module';
 import { LineupModule } from './lineup/lineup.module';
 import { MatchmakingModule } from './matchmaking/matchmaking.module';
 import { MatchmakingWorker } from './matchmaking/worker/matchmaking.worker';
+import { MatchEngineModule } from './match-engine/match-engine.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MatchmakingWorker } from './matchmaking/worker/matchmaking.worker';
     CardModule,
     LineupModule,
     MatchmakingModule,
+    MatchEngineModule,
   ],
   providers: [MatchmakingWorker],
 })
