@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import Redis from 'ioredis';
 import crypto from 'crypto';
 import { MatchType } from './dto/enqueue-matchmaking.dto';
+import { RealtimeService } from '../realtime/realtime.interface';
 
 @Injectable()
 export class MatchmakingService {
@@ -40,6 +41,7 @@ export class MatchmakingService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
+    @Inject('RealtimeService') private readonly realtimeService: RealtimeService,
   ) {}
 
   private generateMatchSeed(): string {
@@ -212,13 +214,33 @@ export class MatchmakingService {
     });
 
     this.logger.log(`Match created: ${match.id} between ${userAId} and ${userBId}`);
-    this.notifyMatchFound(userAId, userBId, match.id);
+    await this.notifyMatchFound(userAId, userBId, match.id);
 
     return { matched: true, matchId: match.id };
   }
 
-  private notifyMatchFound(userAId: string, userBId: string, matchId: string): void {
+  private async notifyMatchFound(userAId: string, userBId: string, matchId: string): Promise<void> {
     this.logger.log(`Match found! Match ID: ${matchId}, Players: ${userAId}, ${userBId}`);
+
+    // Fetch lineup info for payload
+    const [lineupA, lineupB] = await Promise.all([
+      this.prisma.lineup.findUnique({ where: { id: userAId }, include: { user: true } }),
+      this.prisma.lineup.findUnique({ where: { id: userBId }, include: { user: true } }),
+    ]);
+
+    const payload = {
+      matchId,
+      matchType: 'casual', // or get from match record
+      opponentA: lineupA?.user ? { userId: lineupA.user.id, username: lineupA.user.username } : null,
+      opponentB: lineupB?.user ? { userId: lineupB.user.id, username: lineupB.user.username } : null,
+      lineupPowerA: lineupA?.aggregatePowerScore || 0,
+      lineupPowerB: lineupB?.aggregatePowerScore || 0,
+    };
+
+    await Promise.all([
+      this.realtimeService.publishToUser(userAId, 'match:found', { ...payload, opponent: payload.opponentB }),
+      this.realtimeService.publishToUser(userBId, 'match:found', { ...payload, opponent: payload.opponentA }),
+    ]);
   }
 
   async processQueue(): Promise<{ processed: number; matches: number }> {
@@ -309,7 +331,7 @@ export class MatchmakingService {
     });
 
     this.logger.log(`Match created from worker: ${match.id}`);
-    this.notifyMatchFound(userAId, userBId, match.id);
+    await this.notifyMatchFound(userAId, userBId, match.id);
 
     return { matched: true, matchId: match.id };
   }
