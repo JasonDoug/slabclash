@@ -10,6 +10,8 @@ Usage:
     python uninstall.py --target global|project --tools t1,t2    # Uninstall specific tools
 """
 
+from __future__ import annotations
+
 import argparse
 import shutil
 import sys

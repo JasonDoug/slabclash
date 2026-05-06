@@ -168,11 +168,11 @@ Goal: Produce a stable, reproducible `powerScore` (0-1000).
 4. **Condition (10%)**: Reported or estimated condition.
 5. **Momentum (10%)**: Recent performance trends.
 
-**Normalization**: 
+**Normalization**:
 `normalized = (value - min) / (max - min)`, clipped to [0, 1].
 
 Implementation Status
-### Implementation Status
+---------------------
 - [x] Sprint 1: Auth and S3 Uploads.
 - [x] Sprint 2: OCR and Candidate Matching.
 - [x] Sprint 3: Card Confirmation and Rating Engine (Stateless).

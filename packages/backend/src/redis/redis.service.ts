@@ -42,8 +42,8 @@ export class RedisService {
   }
 
   async set(key: string, value: string, mode?: 'EX' | 'PX', duration?: number): Promise<string | null> {
-    if (mode && duration) {
-      return this.redis.set(key, value, mode, duration);
+    if (mode && duration !== undefined) {
+      return this.redis.set(key, value, mode, duration) as Promise<string | null>;
     }
     return this.redis.set(key, value);
   }

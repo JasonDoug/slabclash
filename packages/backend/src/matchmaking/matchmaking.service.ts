@@ -3,8 +3,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import Redis from 'ioredis';
 import crypto from 'crypto';
 import { MatchType } from './dto/enqueue-matchmaking.dto';
-import { RealtimeService } from '../realtime/realtime.interface';
+import type { RealtimeService } from '../realtime/realtime.interface';
 import { MatchEngineService } from '../match-engine/match-engine.service';
+import { ResolveMatchDto } from '../match-engine/dto/resolve-match.dto';
 
 @Injectable()
 export class MatchmakingService {
@@ -222,7 +223,9 @@ export class MatchmakingService {
     if (process.env.NODE_ENV !== 'test') {
       setTimeout(async () => {
         try {
-          await this.matchEngineService.resolveMatch({ matchId: match.id });
+          const dto = new ResolveMatchDto();
+          dto.matchId = match.id;
+          await this.matchEngineService.resolveMatch(dto);
           this.logger.log(`Auto-resolved match ${match.id}`);
         } catch (err) {
           this.logger.error(`Failed to auto-resolve match ${match.id}`, err);
@@ -356,7 +359,9 @@ export class MatchmakingService {
     if (process.env.NODE_ENV !== 'test') {
       setTimeout(async () => {
         try {
-          await this.matchEngineService.resolveMatch({ matchId: match.id });
+          const dto = new ResolveMatchDto();
+          dto.matchId = match.id;
+          await this.matchEngineService.resolveMatch(dto);
           this.logger.log(`Auto-resolved match ${match.id} (worker)`);
         } catch (err) {
           this.logger.error(`Failed to auto-resolve match ${match.id} (worker)`, err);

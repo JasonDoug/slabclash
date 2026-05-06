@@ -6,7 +6,7 @@ import { ResolveMatchDto } from './dto/resolve-match.dto';
 import { ResolutionResult } from './interfaces/resolution-result.interface';
 import { PerPositionResult } from './interfaces/per-position-result.interface';
 import { MatchEvent } from './interfaces/match-event.interface';
-import { RealtimeService } from '../realtime/realtime.interface';
+import type { RealtimeService } from '../realtime/realtime.interface';
 
 interface LineupInput {
   id?: string;

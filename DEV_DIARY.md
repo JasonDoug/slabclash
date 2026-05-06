@@ -85,9 +85,6 @@ Implemented a deterministic match resolution engine that compares lineups positi
 - `packages/backend/src/match-engine/match-engine.service.ts` — Core resolution logic with tiebreakers and seeded RNG.
 - `packages/backend/test/match-engine/match-engine.e2e-spec.ts` — Comprehensive e2e tests for match resolution.
 
-### Next Steps
-- Prompt 12: Mobile (React Native) minimal flows
-
 ## Prompt 11 — Realtime Notifications (2026-05-05)
 
 ### Summary
