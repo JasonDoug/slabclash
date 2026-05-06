@@ -4,9 +4,10 @@ import { RealtimeController } from './realtime.controller';
 
 @Module({
   providers: [
-    { provide: 'RealtimeService', useClass: InMemoryRealtimeService },
+    InMemoryRealtimeService,
+    { provide: 'RealtimeService', useExisting: InMemoryRealtimeService },
   ],
   controllers: [RealtimeController],
-  exports: ['RealtimeService'],
+  exports: [InMemoryRealtimeService, 'RealtimeService'],
 })
 export class RealtimeModule {}

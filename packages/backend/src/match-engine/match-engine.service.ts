@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Logger, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger, ForbiddenException, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import seedrandom from 'seedrandom';
@@ -6,6 +6,7 @@ import { ResolveMatchDto } from './dto/resolve-match.dto';
 import { ResolutionResult } from './interfaces/resolution-result.interface';
 import { PerPositionResult } from './interfaces/per-position-result.interface';
 import { MatchEvent } from './interfaces/match-event.interface';
+import { RealtimeService } from '../realtime/realtime.interface';
 
 interface LineupInput {
   id?: string;
@@ -19,7 +20,10 @@ interface LineupInput {
 export class MatchEngineService {
   private readonly logger = new Logger(MatchEngineService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject('RealtimeService') private readonly realtimeService: RealtimeService,
+  ) {}
 
   async resolveMatch(dto: ResolveMatchDto, requestUserId?: string): Promise<ResolutionResult> {
     let lineupAInput: LineupInput;
@@ -171,6 +175,14 @@ export class MatchEngineService {
           resolutionResults: result as unknown as Prisma.InputJsonValue,
         },
       });
+
+      // Notify users of the result
+      if (lineupAInput.userId && lineupBInput.userId) {
+        await Promise.all([
+          this.realtimeService.publishToUser(lineupAInput.userId, 'match:result', result),
+          this.realtimeService.publishToUser(lineupBInput.userId, 'match:result', result),
+        ]);
+      }
     }
 
     return result;

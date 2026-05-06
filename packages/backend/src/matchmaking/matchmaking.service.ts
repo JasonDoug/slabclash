@@ -4,6 +4,7 @@ import Redis from 'ioredis';
 import crypto from 'crypto';
 import { MatchType } from './dto/enqueue-matchmaking.dto';
 import { RealtimeService } from '../realtime/realtime.interface';
+import { MatchEngineService } from '../match-engine/match-engine.service';
 
 @Injectable()
 export class MatchmakingService {
@@ -42,6 +43,7 @@ export class MatchmakingService {
     private readonly prisma: PrismaService,
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
     @Inject('RealtimeService') private readonly realtimeService: RealtimeService,
+    private readonly matchEngineService: MatchEngineService,
   ) {}
 
   private generateMatchSeed(): string {
@@ -214,32 +216,49 @@ export class MatchmakingService {
     });
 
     this.logger.log(`Match created: ${match.id} between ${userAId} and ${userBId}`);
-    await this.notifyMatchFound(userAId, userBId, match.id);
+    await this.notifyMatchFound(lineupAId, lineupBId, match.id, matchType);
+
+    // Auto-resolve match for MVP (after a 2-second delay to allow mobile to show countdown)
+    if (process.env.NODE_ENV !== 'test') {
+      setTimeout(async () => {
+        try {
+          await this.matchEngineService.resolveMatch({ matchId: match.id });
+          this.logger.log(`Auto-resolved match ${match.id}`);
+        } catch (err) {
+          this.logger.error(`Failed to auto-resolve match ${match.id}`, err);
+        }
+      }, 2000);
+    }
 
     return { matched: true, matchId: match.id };
   }
 
-  private async notifyMatchFound(userAId: string, userBId: string, matchId: string): Promise<void> {
-    this.logger.log(`Match found! Match ID: ${matchId}, Players: ${userAId}, ${userBId}`);
+  private async notifyMatchFound(lineupAId: string, lineupBId: string, matchId: string, matchType: string): Promise<void> {
+    this.logger.log(`Match found! Match ID: ${matchId}, Lineups: ${lineupAId}, ${lineupBId}`);
 
     // Fetch lineup info for payload
     const [lineupA, lineupB] = await Promise.all([
-      this.prisma.lineup.findUnique({ where: { id: userAId }, include: { user: true } }),
-      this.prisma.lineup.findUnique({ where: { id: userBId }, include: { user: true } }),
+      this.prisma.lineup.findUnique({ where: { id: lineupAId }, include: { user: true } }),
+      this.prisma.lineup.findUnique({ where: { id: lineupBId }, include: { user: true } }),
     ]);
+
+    if (!lineupA?.user || !lineupB?.user) {
+      this.logger.warn(`Lineup or user not found for match ${matchId}`);
+      return;
+    }
 
     const payload = {
       matchId,
-      matchType: 'casual', // or get from match record
-      opponentA: lineupA?.user ? { userId: lineupA.user.id, username: lineupA.user.username } : null,
-      opponentB: lineupB?.user ? { userId: lineupB.user.id, username: lineupB.user.username } : null,
-      lineupPowerA: lineupA?.aggregatePowerScore || 0,
-      lineupPowerB: lineupB?.aggregatePowerScore || 0,
+      matchType,
+      opponentA: { userId: lineupA.user.id, username: lineupA.user.username },
+      opponentB: { userId: lineupB.user.id, username: lineupB.user.username },
+      lineupPowerA: lineupA.aggregatePowerScore || 0,
+      lineupPowerB: lineupB.aggregatePowerScore || 0,
     };
 
     await Promise.all([
-      this.realtimeService.publishToUser(userAId, 'match:found', { ...payload, opponent: payload.opponentB }),
-      this.realtimeService.publishToUser(userBId, 'match:found', { ...payload, opponent: payload.opponentA }),
+      this.realtimeService.publishToUser(lineupA.user.id, 'match:found', { ...payload, opponent: payload.opponentB }),
+      this.realtimeService.publishToUser(lineupB.user.id, 'match:found', { ...payload, opponent: payload.opponentA }),
     ]);
   }
 
@@ -331,7 +350,19 @@ export class MatchmakingService {
     });
 
     this.logger.log(`Match created from worker: ${match.id}`);
-    await this.notifyMatchFound(userAId, userBId, match.id);
+    await this.notifyMatchFound(lineupAId, lineupBId, match.id, matchType);
+
+    // Auto-resolve match for MVP (after a 2-second delay to allow mobile to show countdown)
+    if (process.env.NODE_ENV !== 'test') {
+      setTimeout(async () => {
+        try {
+          await this.matchEngineService.resolveMatch({ matchId: match.id });
+          this.logger.log(`Auto-resolved match ${match.id} (worker)`);
+        } catch (err) {
+          this.logger.error(`Failed to auto-resolve match ${match.id} (worker)`, err);
+        }
+      }, 2000);
+    }
 
     return { matched: true, matchId: match.id };
   }

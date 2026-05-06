@@ -1,8 +1,8 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { MatchmakingService } from '../matchmaking.service';
 
 @Injectable()
-export class MatchmakingWorker implements OnModuleInit {
+export class MatchmakingWorker implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(MatchmakingWorker.name);
   private intervalId: NodeJS.Timeout | null = null;
   private readonly POLL_INTERVAL_MS = 5000; // 5 seconds
@@ -11,6 +11,10 @@ export class MatchmakingWorker implements OnModuleInit {
 
   onModuleInit() {
     this.start();
+  }
+
+  onModuleDestroy() {
+    this.stop();
   }
 
   start(): void {

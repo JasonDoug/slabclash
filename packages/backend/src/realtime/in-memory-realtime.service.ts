@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { RealtimeEvent, RealtimeService } from './realtime.interface';
 
+const MAX_EVENTS_PER_USER = 100;
+
 @Injectable()
 export class InMemoryRealtimeService implements RealtimeService {
   private readonly logger = new Logger(InMemoryRealtimeService.name);
@@ -14,9 +16,12 @@ export class InMemoryRealtimeService implements RealtimeService {
       timestamp: new Date(),
     };
 
-    // Store event
+    // Store event with max limit
     const userEvents = this.events.get(userId) || [];
     userEvents.push(event);
+    if (userEvents.length > MAX_EVENTS_PER_USER) {
+      userEvents.splice(0, userEvents.length - MAX_EVENTS_PER_USER);
+    }
     this.events.set(userId, userEvents);
 
     // Notify listeners (for SSE and tests)

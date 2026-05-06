@@ -21,16 +21,16 @@ describe('Realtime (e2e)', () => {
 
     realtimeService = app.get<InMemoryRealtimeService>(InMemoryRealtimeService);
 
-    // Get auth token (assuming test user exists or create one)
-    const res = await request(app.getHttpServer())
+    // Get auth token
+    let res = await request(app.getHttpServer())
       .post('/v1/auth/login')
-      .send({ email: 'test@example.com', password: 'Password123!' })
-      .catch(() => {
-        // If login fails, try signup
-        return request(app.getHttpServer())
-          .post('/v1/auth/signup')
-          .send({ username: 'testuser', email: 'test@example.com', password: 'Password123!' });
-      });
+      .send({ email: 'test@example.com', password: 'Password123!' });
+
+    if (res.status !== 200) {
+      res = await request(app.getHttpServer())
+        .post('/v1/auth/signup')
+        .send({ username: 'testuser', email: 'test@example.com', password: 'Password123!' });
+    }
 
     token = res.body.accessToken || res.body;
   });
@@ -80,17 +80,17 @@ describe('Realtime (e2e)', () => {
   });
 
   describe('SSE endpoint', () => {
-    it('should return 200 and set correct headers', async () => {
-      const res = await request(app.getHttpServer())
+    it('should return 200 and set correct headers', (done) => {
+      const req = request(app.getHttpServer())
         .get('/v1/notifications/stream')
         .set('Authorization', `Bearer ${token}`)
-        .timeout(1000)
-        .catch(err => err);
-
-      // The initial heartbeat should have been sent
-      expect(res.status).toBe(200);
-      expect(res.headers['content-type']).toContain('text/event-stream');
-    });
+        .on('response', (res: any) => {
+          expect(res.status).toBe(200);
+          expect(res.headers['content-type']).toContain('text/event-stream');
+          req.abort();
+          done();
+        });
+    }, 5000);
   });
 
   describe('Integration with MatchmakingService', () => {
