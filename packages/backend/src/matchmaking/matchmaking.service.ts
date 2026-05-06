@@ -219,21 +219,33 @@ export class MatchmakingService {
     this.logger.log(`Match created: ${match.id} between ${userAId} and ${userBId}`);
     await this.notifyMatchFound(lineupAId, lineupBId, match.id, matchType);
 
-    // Auto-resolve match for MVP (after a 2-second delay to allow mobile to show countdown)
+    // Auto-resolve match for MVP (simulating countdown)
     if (process.env.NODE_ENV !== 'test') {
       setTimeout(async () => {
         try {
-          const dto = new ResolveMatchDto();
-          dto.matchId = match.id;
-          await this.matchEngineService.resolveMatch(dto);
-          this.logger.log(`Auto-resolved match ${match.id}`);
+          await this.notifyMatchStart(userAId, userBId, match.id);
+          
+          setTimeout(async () => {
+            const dto = new ResolveMatchDto();
+            dto.matchId = match.id;
+            await this.matchEngineService.resolveMatch(dto);
+            this.logger.log(`Auto-resolved match ${match.id}`);
+          }, 2000);
         } catch (err) {
-          this.logger.error(`Failed to auto-resolve match ${match.id}`, err);
+          this.logger.error(`Failed to trigger match flow for ${match.id}`, err);
         }
-      }, 2000);
+      }, 1000);
     }
 
     return { matched: true, matchId: match.id };
+  }
+
+  private async notifyMatchStart(userAId: string, userBId: string, matchId: string): Promise<void> {
+    const payload = { matchId };
+    await Promise.all([
+      this.realtimeService.publishToUser(userAId, 'match.start', payload),
+      this.realtimeService.publishToUser(userBId, 'match.start', payload),
+    ]);
   }
 
   private async notifyMatchFound(lineupAId: string, lineupBId: string, matchId: string, matchType: string): Promise<void> {
@@ -260,8 +272,8 @@ export class MatchmakingService {
     };
 
     await Promise.all([
-      this.realtimeService.publishToUser(lineupA.user.id, 'match:found', { ...payload, opponent: payload.opponentB }),
-      this.realtimeService.publishToUser(lineupB.user.id, 'match:found', { ...payload, opponent: payload.opponentA }),
+      this.realtimeService.publishToUser(lineupA.user.id, 'match.found', { ...payload, opponent: payload.opponentB }),
+      this.realtimeService.publishToUser(lineupB.user.id, 'match.found', { ...payload, opponent: payload.opponentA }),
     ]);
   }
 
@@ -355,18 +367,22 @@ export class MatchmakingService {
     this.logger.log(`Match created from worker: ${match.id}`);
     await this.notifyMatchFound(lineupAId, lineupBId, match.id, matchType);
 
-    // Auto-resolve match for MVP (after a 2-second delay to allow mobile to show countdown)
+    // Auto-resolve match for MVP (simulating countdown)
     if (process.env.NODE_ENV !== 'test') {
       setTimeout(async () => {
         try {
-          const dto = new ResolveMatchDto();
-          dto.matchId = match.id;
-          await this.matchEngineService.resolveMatch(dto);
-          this.logger.log(`Auto-resolved match ${match.id} (worker)`);
+          await this.notifyMatchStart(userAId, userBId, match.id);
+          
+          setTimeout(async () => {
+            const dto = new ResolveMatchDto();
+            dto.matchId = match.id;
+            await this.matchEngineService.resolveMatch(dto);
+            this.logger.log(`Auto-resolved match ${match.id} (worker)`);
+          }, 2000);
         } catch (err) {
-          this.logger.error(`Failed to auto-resolve match ${match.id} (worker)`, err);
+          this.logger.error(`Failed to trigger match flow for ${match.id} (worker)`, err);
         }
-      }, 2000);
+      }, 1000);
     }
 
     return { matched: true, matchId: match.id };

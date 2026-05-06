@@ -156,6 +156,8 @@ export class MatchEngineService {
             ? lineupBInput.id
             : undefined
         : undefined,
+      lineupAId: lineupAInput.id,
+      lineupBId: lineupBInput.id,
       scoreA,
       scoreB,
       perPositionResults,
@@ -179,8 +181,8 @@ export class MatchEngineService {
       // Notify users of the result
       if (lineupAInput.userId && lineupBInput.userId) {
         await Promise.all([
-          this.realtimeService.publishToUser(lineupAInput.userId, 'match:result', result),
-          this.realtimeService.publishToUser(lineupBInput.userId, 'match:result', result),
+          this.realtimeService.publishToUser(lineupAInput.userId, 'match.result', result),
+          this.realtimeService.publishToUser(lineupBInput.userId, 'match.result', result),
         ]);
       }
     }

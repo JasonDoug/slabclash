@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { User, Lineup, Card, Match } from '@prisma/client';
@@ -17,7 +17,7 @@ describe('MatchEngine (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new (await import('@nestjs/common')).ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     await app.init();
 
     prisma = app.get<PrismaService>(PrismaService);
@@ -35,18 +35,20 @@ describe('MatchEngine (e2e)', () => {
     const loginRes = await request(app.getHttpServer())
       .post('/v1/auth/login')
       .send({ email, password })
-      .expect(201);
+      .expect(200);
 
     accessToken = loginRes.body.accessToken;
-    userId = loginRes.body.id;
+    userId = loginRes.body.user.id;
   });
 
   afterAll(async () => {
     // Cleanup
-    await prisma.match.deleteMany({ where: { lineupA: { userId } } });
-    await prisma.lineup.deleteMany({ where: { userId } });
-    await prisma.card.deleteMany({ where: { userId } });
-    await prisma.user.delete({ where: { id: userId } });
+    if (userId) {
+      await prisma.match.deleteMany({ where: { lineupA: { userId } } });
+      await prisma.lineup.deleteMany({ where: { userId } });
+      await prisma.card.deleteMany({ where: { userId } });
+      await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+    }
     await app.close();
   });
 
@@ -58,7 +60,7 @@ describe('MatchEngine (e2e)', () => {
       card1 = await prisma.card.create({
         data: {
           userId,
-          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_1` })).id,
+          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_1` } })).id,
           year: 2024,
           setName: 'Test Set',
           variant: 'Base',
@@ -75,7 +77,7 @@ describe('MatchEngine (e2e)', () => {
       card2 = await prisma.card.create({
         data: {
           userId,
-          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_2` })).id,
+          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_2` } })).id,
           year: 2024,
           setName: 'Test Set',
           variant: 'Base',
@@ -92,7 +94,7 @@ describe('MatchEngine (e2e)', () => {
       card3 = await prisma.card.create({
         data: {
           userId,
-          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_3` })).id,
+          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_3` } })).id,
           year: 2024,
           setName: 'Test Set',
           variant: 'Base',
@@ -109,7 +111,7 @@ describe('MatchEngine (e2e)', () => {
       card4 = await prisma.card.create({
         data: {
           userId,
-          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_4` })).id,
+          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_4` } })).id,
           year: 2024,
           setName: 'Test Set',
           variant: 'Base',
@@ -216,6 +218,7 @@ describe('MatchEngine (e2e)', () => {
           userId, name: 'Test Lineup A',
           slots: { PG: cardA1.id } as any,
           aggregatePowerScore: 90,
+          rarityCounts: {} as any,
         },
       });
 
@@ -224,6 +227,7 @@ describe('MatchEngine (e2e)', () => {
           userId, name: 'Test Lineup B',
           slots: { PG: cardB1.id } as any,
           aggregatePowerScore: 80,
+          rarityCounts: {} as any,
         },
       });
 
