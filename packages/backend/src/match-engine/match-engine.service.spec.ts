@@ -18,10 +18,15 @@ describe('MatchEngineService', () => {
       },
     };
 
+    const mockRealtimeService = {
+      publishToUser: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MatchEngineService,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: 'RealtimeService', useValue: mockRealtimeService },
       ],
     }).compile();
 

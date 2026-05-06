@@ -10,19 +10,19 @@ export class MatchmakingController {
 
   @Post('enqueue')
   async enqueue(@Req() req: any, @Body() dto: EnqueueMatchmakingDto) {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     return this.matchmakingService.enqueue(userId, dto.lineupId, dto.matchType);
   }
 
   @Get('status')
   async getStatus(@Req() req: any) {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     return this.matchmakingService.getStatus(userId);
   }
 
   @Post('cancel')
   async cancel(@Req() req: any) {
-    const userId = req.user.userId;
+    const userId = req.user.id;
     const removed = await this.matchmakingService.removeFromQueue(userId);
     return { cancelled: removed };
   }

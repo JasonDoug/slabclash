@@ -168,7 +168,7 @@ Goal: Produce a stable, reproducible `powerScore` (0-1000).
 4. **Condition (10%)**: Reported or estimated condition.
 5. **Momentum (10%)**: Recent performance trends.
 
-**Normalization**: 
+**Normalization**:
 `normalized = (value - min) / (max - min)`, clipped to [0, 1].
 
 Implementation Status
@@ -177,6 +177,6 @@ Implementation Status
 - [x] Sprint 2: OCR and Candidate Matching.
 - [x] Sprint 3: Card Confirmation and Rating Engine (Stateless).
 - [x] Sprint 4: Collection Management (Basic).
-- [ ] Sprint 5: Lineups and Deck Building.
-- [ ] Sprint 6: Matchmaking and Match Engine.
+- [x] Sprint 5: Lineups and Deck Building.
+- [x] Sprint 6: Matchmaking and Match Engine.
 - [ ] Sprint 7: Anti-fraud and Admin Dashboard.

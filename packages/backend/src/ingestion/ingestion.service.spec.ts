@@ -30,6 +30,7 @@ describe('IngestionService', () => {
     },
     card: {
       update: jest.fn(),
+      findUnique: jest.fn(),
     },
   };
 
@@ -47,7 +48,7 @@ describe('IngestionService', () => {
   };
 
   const mockRatingService = {
-    calculatePowerScore: jest.fn(),
+    calculate: jest.fn(),
     scheduleRating: jest.fn(),
   };
 
@@ -187,11 +188,22 @@ describe('IngestionService', () => {
         name: 'Test Player',
       });
       mockCardService.createCard.mockResolvedValue({ id: 'card-1' });
+      mockPrismaService.card.findUnique.mockResolvedValue({
+        id: 'card-1',
+        rarity: 'common',
+        playerStats: 80,
+        marketValueCents: 5000,
+        conditionEstimatedScore: 9,
+      });
       mockPrismaService.cardIngestionJob.update.mockResolvedValue({});
     });
 
     it('should create Card record and update job status on confirm', async () => {
-      mockRatingService.calculatePowerScore.mockReturnValue(null);
+      mockRatingService.calculate.mockResolvedValue({
+        powerScore: 750,
+        ratingConfigVersion: 'v1',
+        breakdown: [],
+      });
 
       const result = await service.confirmScanJob(
         userId,
@@ -223,8 +235,8 @@ describe('IngestionService', () => {
       expect(result.cardId).toBe('card-1');
     });
 
-    it('should schedule rating job when powerScore calculation returns null', async () => {
-      mockRatingService.calculatePowerScore.mockReturnValue(null);
+    it('should schedule rating job when powerScore calculation fails', async () => {
+      mockRatingService.calculate.mockRejectedValue(new Error('Rating calculation failed'));
 
       await service.confirmScanJob(
         userId,

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, NotFoundException, Req } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MatchEngineService } from './match-engine.service';
 import { ResolveMatchDto } from './dto/resolve-match.dto';
@@ -31,7 +31,7 @@ export class MatchEngineController {
         throw new NotFoundException('Match not found');
       }
 
-      const userId = req.user.userId;
+      const userId = req.user.id;
       const ownerA = match.lineupA.userId;
       const ownerB = match.lineupB.userId;
       if (userId !== ownerA && userId !== ownerB) {

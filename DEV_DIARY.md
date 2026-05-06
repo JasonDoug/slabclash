@@ -48,3 +48,53 @@ Each factor is normalized to a 0.0 - 1.0 range using `min` and `max` bounds defi
 ### Next Steps
 - Prompt 07: Collection Management (List/Filter Cards)
 - Prompt 08: Lineup Creation and Validation
+
+## Prompt 07 — Collection Management (2026-05-01)
+
+### Summary
+Implemented CRUD endpoints for user card collections, including filtering and pagination.
+
+### Changes Made
+- `packages/backend/src/card/card.controller.ts` — Added GET /v1/users/:userId/cards and GET /v1/cards/:cardId.
+- `packages/backend/src/card/card.service.ts` — Implemented list and detail logic with ownership checks.
+
+## Prompt 08 — Lineup Creation & Validation (2026-05-02)
+
+### Summary
+Implemented lineup management allowing users to create 9-position rosters from their collected cards.
+
+### Changes Made
+- `packages/backend/src/lineup/lineup.controller.ts` — Added CRUD for lineups.
+- `packages/backend/src/lineup/lineup.service.ts` — Added validation for card ownership and aggregate power score calculation.
+
+## Prompt 09 — Matchmaking Queue (2026-05-03)
+
+### Summary
+Implemented a Redis-backed matchmaking system that buckets players by power score.
+
+### Changes Made
+- `packages/backend/src/redis/redis.service.ts` — Created Redis wrapper.
+- `packages/backend/src/matchmaking/matchmaking.service.ts` — Implemented enqueue/status logic and background worker.
+
+## Prompt 10 — Match Engine (2026-05-04)
+
+### Summary
+Implemented a deterministic match resolution engine that compares lineups position-by-position.
+
+### Changes Made
+- `packages/backend/src/match-engine/match-engine.service.ts` — Core resolution logic with tiebreakers and seeded RNG.
+- `packages/backend/test/match-engine/match-engine.e2e-spec.ts` — Comprehensive e2e tests for match resolution.
+
+## Prompt 11 — Realtime Notifications (2026-05-05)
+
+### Summary
+Implemented a Server-Sent Events (SSE) notification system to inform users of matchmaking results.
+
+### Changes Made
+- `packages/backend/src/realtime/realtime.controller.ts` — Added /v1/notifications/stream endpoint.
+- `packages/backend/src/realtime/in-memory-realtime.service.ts` — Implemented in-memory event publishing and subscription.
+
+### Next Steps
+- Prompt 12: Mobile (React Native) minimal flows: Camera, Upload, and Match UI.
+
+

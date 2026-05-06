@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MatchmakingService } from './matchmaking.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { MatchType } from './dto/enqueue-matchmaking.dto';
+import { MatchEngineService } from '../match-engine/match-engine.service';
 
 describe('MatchmakingService', () => {
   let service: MatchmakingService;
@@ -34,11 +35,21 @@ describe('MatchmakingService', () => {
       eval: jest.fn(),
     };
 
+    const mockRealtimeService = {
+      publishToUser: jest.fn(),
+    };
+
+    const mockMatchEngineService = {
+      resolveMatch: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MatchmakingService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: 'REDIS_CLIENT', useValue: mockRedis },
+        { provide: 'RealtimeService', useValue: mockRealtimeService },
+        { provide: MatchEngineService, useValue: mockMatchEngineService },
       ],
     }).compile();
 

@@ -9,7 +9,7 @@ export class RealtimeController {
 
   @Get('stream')
   async stream(@Req() req: any, @Res() res: any): Promise<void> {
-    const userId = req.user.userId;
+    const userId = req.user.id;
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
