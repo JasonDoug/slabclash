@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module, Global } from '@nestjs/common';
 import { InMemoryRealtimeService } from './in-memory-realtime.service';
 import { RealtimeController } from './realtime.controller';
 
+@Global()
 @Module({
   providers: [
     InMemoryRealtimeService,

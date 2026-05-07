@@ -1,5 +1,5 @@
 export interface RealtimeEvent {
-  event: string; // 'match:found' | 'match:start' | 'match:result'
+  event: string; // 'match.found' | 'match.start' | 'match.result'
   data: any;
   timestamp: Date;
 }

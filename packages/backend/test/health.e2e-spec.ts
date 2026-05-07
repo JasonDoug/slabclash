@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { AppModule } from './../src/app.module';
 
 describe('HealthController (e2e)', () => {
@@ -19,9 +19,9 @@ describe('HealthController (e2e)', () => {
     await app.close();
   });
 
-  it('/health (GET)', () => {
+  it('/v1/health (GET)', () => {
     return request(app.getHttpServer())
-      .get('/health')
+      .get('/v1/health')
       .expect(200)
       .expect((res) => {
         expect(res.body.status).toBeDefined();

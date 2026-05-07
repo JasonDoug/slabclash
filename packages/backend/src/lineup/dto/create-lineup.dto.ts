@@ -1,13 +1,11 @@
-import { IsString, IsNotEmpty, ValidateNested, IsNotEmptyObject } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsNotEmpty, IsObject, IsNotEmptyObject } from 'class-validator';
 
 export class CreateLineupDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
+  @IsObject()
   @IsNotEmptyObject()
-  @ValidateNested()
-  @Type(() => Object)
   slots: Record<string, string>;
 }

@@ -10,9 +10,22 @@ export class MatchNotifications {
     const url = `http://localhost:3000/v1/notifications/stream?token=${token}`;
     this.eventSource = new EventSource(url);
 
-    this.eventSource.addEventListener('match:found', (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      this.showMatchFoundModal(data);
+    this.eventSource.addEventListener('match.found', (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        this.showMatchFoundModal(data);
+      } catch (err) {
+        console.warn('Malformed match.found payload', err);
+      }
+    });
+
+    this.eventSource.addEventListener('match.result', (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        this.showMatchResult(data);
+      } catch (err) {
+        console.warn('Malformed match.result payload', err);
+      }
     });
 
     this.eventSource.onerror = (error: any) => {
@@ -26,6 +39,12 @@ export class MatchNotifications {
     console.log('Match found!', data);
     // In real implementation: trigger UI modal/navigation
     // Example: navigation.navigate('/match-found', { state: { matchId: data.matchId, opponent: data.opponent } });
+  }
+
+  private showMatchResult(data: any): void {
+    // Display "Match Result" screen with winner and breakdown
+    console.log('Match result!', data);
+    // Example: navigation.navigate('/match-result', { state: { result: data } });
   }
 
   disconnect(): void {

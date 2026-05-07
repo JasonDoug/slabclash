@@ -33,10 +33,22 @@ export const LineupCreateScreen = () => {
   };
 
   const createLineup = async () => {
+    // In a real app, this token would come from auth state/storage (e.g. useAuth hook)
+    const token = null; // Mock: token is missing
+
+    if (!token) {
+      console.error('No authentication token found. Please log in.');
+      // alert('Please log in to create a lineup');
+      return;
+    }
+
     try {
       const response = await fetch('http://localhost:3000/v1/lineups', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({ name: lineupName, slots: selectedCards }),
       });
       const data = await response.json();

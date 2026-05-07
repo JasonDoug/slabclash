@@ -30,23 +30,27 @@ describe('Ingestion (e2e)', () => {
     const password = 'Password123!';
 
     await request(app.getHttpServer())
-      .post('/auth/signup')
-      .send({ username, email, password });
+      .post('/v1/auth/signup')
+      .send({ username, email, password })
+      .expect(201);
+const loginRes = await request(app.getHttpServer())
+  .post('/v1/auth/login')
+  .send({ email, password })
+  .expect(200);
 
-    const loginRes = await request(app.getHttpServer())
-      .post('/auth/login')
-      .send({ email, password });
+accessToken = loginRes.body.accessToken;
+userId = loginRes.body.user.id;
+});
 
-    accessToken = loginRes.body.accessToken;
-    userId = loginRes.body.user.id;
-  });
-
-  afterAll(async () => {
-    // Cleanup
-    await prisma.cardIngestionJob.deleteMany({ where: { userId } });
-    await prisma.user.delete({ where: { id: userId } });
-    await app.close();
-  });
+afterAll(async () => {
+// Cleanup
+if (userId) {
+  await prisma.cardIngestionJob.deleteMany({ where: { userId } });
+  await prisma.card.deleteMany({ where: { userId } });
+  await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+}
+await app.close();
+});
 
   it('should generate presigned URLs, allow upload, and process OCR', async () => {
     const frontFileName = 'test-front.png';
@@ -109,10 +113,9 @@ describe('Ingestion (e2e)', () => {
 
       // 5. Confirm the scan
       const confirmRes = await request(app.getHttpServer())
-        .post(`/v1/scan/confirm`)
+        .post(`/v1/scan/confirm/${scanJobId}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
-          scanJobId,
           playerId,
           year: 2018,
           setName: 'Topps',
