@@ -14,20 +14,34 @@ interface MatchResult {
   events: MatchEvent[];
 }
 
-export const MatchPlayScreen = ({ route }: any) => {
+// Configuration should be moved to a shared config file or env in production
+const API_BASE_URL = 'http://localhost:3000';
+
+export const MatchPlayScreen = ({ route, navigation }: any) => {
   const { userId, token } = route.params;
-  const [status, setStatus] = useState<'searching' | 'found' | 'playing' | 'finished'>('searching');
-  const [matchInfo, setMatchId] = useState<any>(null);
+  const [status, setStatus] = useState<'searching' | 'found' | 'playing' | 'finished' | 'error'>('searching');
+  const [matchInfo, setMatchInfo] = useState<any>(null);
   const [result, setResult] = useState<MatchResult | null>(null);
 
   useEffect(() => {
-    const url = `http://localhost:3000/v1/notifications/stream?token=${token}`;
+    const url = `${API_BASE_URL}/v1/notifications/stream?token=${token}`;
     const eventSource = new (global as any).EventSource(url);
 
+    const safeParse = (event: any, callback: (data: any) => void) => {
+      try {
+        const data = JSON.parse(event.data);
+        callback(data);
+      } catch (err) {
+        console.error('Failed to parse SSE event data', err);
+        setStatus('error');
+      }
+    };
+
     eventSource.addEventListener('match.found', (event: any) => {
-      const data = JSON.parse(event.data);
-      setMatchId(data);
-      setStatus('found');
+      safeParse(event, (data) => {
+        setMatchInfo(data);
+        setStatus('found');
+      });
     });
 
     eventSource.addEventListener('match.start', (event: any) => {
@@ -35,16 +49,29 @@ export const MatchPlayScreen = ({ route }: any) => {
     });
 
     eventSource.addEventListener('match.result', (event: any) => {
-      const data = JSON.parse(event.data);
-      setResult(data);
-      setStatus('finished');
+      safeParse(event, (data) => {
+        setResult(data);
+        setStatus('finished');
+      });
     });
+
+    eventSource.onerror = (err: any) => {
+      console.error('SSE connection error', err);
+      setStatus('error');
+    };
 
     return () => eventSource.close();
   }, [token]);
 
   return (
     <View style={styles.container}>
+      {status === 'error' && (
+        <View style={styles.centered}>
+          <Text style={styles.title}>Something went wrong</Text>
+          <Button title="Go Back" onPress={() => navigation.goBack()} />
+        </View>
+      )}
+
       {status === 'searching' && (
         <View style={styles.centered}>
           <Text style={styles.title}>Finding Opponent...</Text>
@@ -55,8 +82,8 @@ export const MatchPlayScreen = ({ route }: any) => {
         <View style={styles.centered}>
           <Text style={styles.title}>Match Found!</Text>
           <Text style={styles.subtitle}>VS {matchInfo.opponent.username}</Text>
-          <Text>Your Power: {matchInfo.lineupPowerA}</Text>
-          <Text>Their Power: {matchInfo.lineupPowerB}</Text>
+          <Text>Your Power: {matchInfo.lineupAId === userId ? matchInfo.lineupPowerA : matchInfo.lineupPowerB}</Text>
+          <Text>Opponent Power: {matchInfo.lineupAId === userId ? matchInfo.lineupPowerB : matchInfo.lineupPowerA}</Text>
           <Text style={styles.timer}>Starting in 3...</Text>
         </View>
       )}
@@ -83,7 +110,7 @@ export const MatchPlayScreen = ({ route }: any) => {
             </View>
           ))}
           
-          <Button title="Back to Collection" onPress={() => {}} />
+          <Button title="Back to Collection" onPress={() => navigation.navigate('Collection')} />
         </ScrollView>
       )}
     </View>

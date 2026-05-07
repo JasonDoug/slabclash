@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsObject } from 'class-validator';
+import { IsString, IsNotEmpty, IsObject, IsNotEmptyObject } from 'class-validator';
 
 export class CreateLineupDto {
   @IsString()
@@ -6,6 +6,6 @@ export class CreateLineupDto {
   name: string;
 
   @IsObject()
-  @IsNotEmpty()
+  @IsNotEmptyObject()
   slots: Record<string, string>;
 }

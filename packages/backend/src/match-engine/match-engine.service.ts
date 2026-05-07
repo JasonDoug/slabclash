@@ -156,8 +156,8 @@ export class MatchEngineService {
             ? lineupBInput.id
             : undefined
         : undefined,
-      lineupAId: lineupAInput.id,
-      lineupBId: lineupBInput.id,
+      lineupAId: lineupAInput.id || 'N/A',
+      lineupBId: lineupBInput.id || 'N/A',
       scoreA,
       scoreB,
       perPositionResults,
@@ -180,10 +180,17 @@ export class MatchEngineService {
 
       // Notify users of the result
       if (lineupAInput.userId && lineupBInput.userId) {
-        await Promise.all([
-          this.realtimeService.publishToUser(lineupAInput.userId, 'match.result', result),
-          this.realtimeService.publishToUser(lineupBInput.userId, 'match.result', result),
-        ]);
+        try {
+          await Promise.all([
+            this.realtimeService.publishToUser(lineupAInput.userId, 'match.result', result),
+            this.realtimeService.publishToUser(lineupBInput.userId, 'match.result', result),
+          ]);
+        } catch (err) {
+          this.logger.error(
+            `Failed to publish match.result for match ${matchId} to users ${lineupAInput.userId}, ${lineupBInput.userId}`,
+            err.stack,
+          );
+        }
       }
     }
 

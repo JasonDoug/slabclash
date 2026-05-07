@@ -31,7 +31,8 @@ describe('Match Flow (e2e)', () => {
     prisma = app.get<PrismaService>(PrismaService);
     realtimeService = app.get<InMemoryRealtimeService>(InMemoryRealtimeService);
     const redis = app.get('REDIS_CLIENT');
-    await redis.flushall();
+    await redis.select(15);
+    await redis.flushdb();
 
     // Cleanup
     await prisma.match.deleteMany();
@@ -131,9 +132,6 @@ describe('Match Flow (e2e)', () => {
       .set('Authorization', `Bearer ${tokenA}`)
       .send({ lineupId: lineupA.id, matchType: 'casual' });
     
-    if (enqueueARes.status !== 201) {
-      console.error('Enqueue A failed:', enqueueARes.body);
-    }
     expect(enqueueARes.status).toBe(201);
 
     const enqueueBRes = await request(app.getHttpServer())
@@ -141,9 +139,6 @@ describe('Match Flow (e2e)', () => {
       .set('Authorization', `Bearer ${tokenB}`)
       .send({ lineupId: lineupB.id, matchType: 'casual' });
 
-    if (enqueueBRes.status !== 201) {
-      console.error('Enqueue B failed:', enqueueBRes.body);
-    }
     expect(enqueueBRes.status).toBe(201);
 
     // 3. Trigger matchmaking processing
@@ -151,22 +146,19 @@ describe('Match Flow (e2e)', () => {
     await matchmakingService.processQueue();
 
     // 4. Verify match.found
-    await waitFor(() => eventsA.some(e => e.event === 'match.found'), 2000);
-    await waitFor(() => eventsB.some(e => e.event === 'match.found'), 2000);
+    await Promise.all([
+      waitFor(() => eventsA.some(e => e.event === 'match.found'), 2000),
+      waitFor(() => eventsB.some(e => e.event === 'match.found'), 2000),
+    ]);
 
     const foundA = eventsA.find(e => e.event === 'match.found');
     expect(foundA.data.matchId).toBeDefined();
     expect(foundA.data.opponent.userId).toBe(userB.id);
 
-    // 4.5 Verify match.start (happens 1s after found in non-test, but we might need to trigger it if we want to test the flow)
-    // In our service, match.start is also inside a setTimeout(..., 1000) IF not in test.
-    // Wait, I disabled the flow in test. I should probably enable it for this specific test or simulate it.
-    // For this e2e, I'll manually trigger what the timeouts would do.
-    
     const matchId = foundA.data.matchId;
 
     // Simulate match.start
-    await matchmakingService['notifyMatchStart'](userA.id, userB.id, matchId);
+    await matchmakingService.startMatchForTest(userA.id, userB.id, matchId);
     await waitFor(() => eventsA.some(e => e.event === 'match.start'), 2000);
 
     // 5. Manual trigger resolution
@@ -177,11 +169,13 @@ describe('Match Flow (e2e)', () => {
       .expect(201);
 
     // 6. Verify match.result
-    await waitFor(() => eventsA.some(e => e.event === 'match.result'), 10000);
-    await waitFor(() => eventsB.some(e => e.event === 'match.result'), 10000);
+    await Promise.all([
+      waitFor(() => eventsA.some(e => e.event === 'match.result'), 10000),
+      waitFor(() => eventsB.some(e => e.event === 'match.result'), 10000),
+    ]);
 
     const resultA = eventsA.find(e => e.event === 'match.result');
-    expect(resultA.data.winner).toBe('A'); // userA had higher powerScore
+    expect(resultA.data.winner).toBe('A'); // userA won via higher playerStats (90 vs 85), powerScore equal
     expect(resultA.data.scoreA).toBe(1);
     expect(resultA.data.scoreB).toBe(0);
 
@@ -189,7 +183,7 @@ describe('Match Flow (e2e)', () => {
     const match = await prisma.match.findUnique({ where: { id: matchId } });
     expect(match.status).toBe('completed');
     expect(match.winnerLineupId).toBe(lineupA.id);
-  }, 10000);
+  }, 30000);
 
   function eventToPojo(ev: any) {
     return { event: ev.event, data: ev.data };

@@ -226,10 +226,14 @@ export class MatchmakingService {
           await this.notifyMatchStart(userAId, userBId, match.id);
           
           setTimeout(async () => {
-            const dto = new ResolveMatchDto();
-            dto.matchId = match.id;
-            await this.matchEngineService.resolveMatch(dto);
-            this.logger.log(`Auto-resolved match ${match.id}`);
+            try {
+              const dto = new ResolveMatchDto();
+              dto.matchId = match.id;
+              await this.matchEngineService.resolveMatch(dto);
+              this.logger.log(`Auto-resolved match ${match.id}`);
+            } catch (err) {
+              this.logger.error(`Failed to auto-resolve match ${match.id}`, err);
+            }
           }, 2000);
         } catch (err) {
           this.logger.error(`Failed to trigger match flow for ${match.id}`, err);
@@ -238,6 +242,13 @@ export class MatchmakingService {
     }
 
     return { matched: true, matchId: match.id };
+  }
+
+  /**
+   * For testing purposes: manually triggers the match.start notification.
+   */
+  async startMatchForTest(userAId: string, userBId: string, matchId: string): Promise<void> {
+    return this.notifyMatchStart(userAId, userBId, matchId);
   }
 
   private async notifyMatchStart(userAId: string, userBId: string, matchId: string): Promise<void> {
@@ -374,10 +385,14 @@ export class MatchmakingService {
           await this.notifyMatchStart(userAId, userBId, match.id);
           
           setTimeout(async () => {
-            const dto = new ResolveMatchDto();
-            dto.matchId = match.id;
-            await this.matchEngineService.resolveMatch(dto);
-            this.logger.log(`Auto-resolved match ${match.id} (worker)`);
+            try {
+              const dto = new ResolveMatchDto();
+              dto.matchId = match.id;
+              await this.matchEngineService.resolveMatch(dto);
+              this.logger.log(`Auto-resolved match ${match.id} (worker)`);
+            } catch (err) {
+              this.logger.error(`Failed to auto-resolve match ${match.id} (worker)`, err);
+            }
           }, 2000);
         } catch (err) {
           this.logger.error(`Failed to trigger match flow for ${match.id} (worker)`, err);

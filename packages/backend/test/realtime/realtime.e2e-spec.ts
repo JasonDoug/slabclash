@@ -10,6 +10,7 @@ describe('Realtime (e2e)', () => {
   let app: INestApplication;
   let realtimeService: InMemoryRealtimeService;
   let token: string;
+  let userId: string;
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -23,22 +24,22 @@ describe('Realtime (e2e)', () => {
     realtimeService = app.get<InMemoryRealtimeService>(InMemoryRealtimeService);
 
     // Get auth token
+    const testEmail = `test_${Date.now()}@example.com`;
     const signupRes = await request(app.getHttpServer())
       .post('/v1/auth/signup')
-      .send({ username: `testuser_${Date.now()}`, email: `test_${Date.now()}@example.com`, password: 'Password123!' })
+      .send({ username: `testuser_${Date.now()}`, email: testEmail, password: 'Password123!' })
       .expect(201);
 
     const loginRes = await request(app.getHttpServer())
       .post('/v1/auth/login')
-      .send({ email: signupRes.body.email, password: 'Password123!' })
+      .send({ email: testEmail, password: 'Password123!' })
       .expect(200);
 
     token = loginRes.body.accessToken;
-    (this as any).userId = loginRes.body.user.id;
+    userId = loginRes.body.user.id;
   });
 
   afterAll(async () => {
-    const userId = (this as any).userId;
     if (userId) {
       const prisma = app.get(PrismaService);
       await prisma.user.delete({ where: { id: userId } }).catch(() => {});

@@ -11,13 +11,21 @@ export class MatchNotifications {
     this.eventSource = new EventSource(url);
 
     this.eventSource.addEventListener('match.found', (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      this.showMatchFoundModal(data);
+      try {
+        const data = JSON.parse(event.data);
+        this.showMatchFoundModal(data);
+      } catch (err) {
+        console.warn('Malformed match.found payload', err);
+      }
     });
 
     this.eventSource.addEventListener('match.result', (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      this.showMatchResult(data);
+      try {
+        const data = JSON.parse(event.data);
+        this.showMatchResult(data);
+      } catch (err) {
+        console.warn('Malformed match.result payload', err);
+      }
     });
 
     this.eventSource.onerror = (error: any) => {

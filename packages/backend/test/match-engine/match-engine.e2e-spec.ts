@@ -10,6 +10,8 @@ describe('MatchEngine (e2e)', () => {
   let prisma: PrismaService;
   let accessToken: string;
   let userId: string;
+  const runId = Date.now();
+  const runPrefix = `Player_${runId}_`;
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
@@ -60,7 +62,7 @@ describe('MatchEngine (e2e)', () => {
       card1 = await prisma.card.create({
         data: {
           userId,
-          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_1` } })).id,
+          playerId: (await prisma.player.create({ data: { name: `${runPrefix}1` } })).id,
           year: 2024,
           setName: 'Test Set',
           variant: 'Base',
@@ -77,7 +79,7 @@ describe('MatchEngine (e2e)', () => {
       card2 = await prisma.card.create({
         data: {
           userId,
-          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_2` } })).id,
+          playerId: (await prisma.player.create({ data: { name: `${runPrefix}2` } })).id,
           year: 2024,
           setName: 'Test Set',
           variant: 'Base',
@@ -94,7 +96,7 @@ describe('MatchEngine (e2e)', () => {
       card3 = await prisma.card.create({
         data: {
           userId,
-          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_3` } })).id,
+          playerId: (await prisma.player.create({ data: { name: `${runPrefix}3` } })).id,
           year: 2024,
           setName: 'Test Set',
           variant: 'Base',
@@ -111,7 +113,7 @@ describe('MatchEngine (e2e)', () => {
       card4 = await prisma.card.create({
         data: {
           userId,
-          playerId: (await prisma.player.create({ data: { name: `Player_${Date.now()}_4` } })).id,
+          playerId: (await prisma.player.create({ data: { name: `${runPrefix}4` } })).id,
           year: 2024,
           setName: 'Test Set',
           variant: 'Base',
@@ -128,7 +130,7 @@ describe('MatchEngine (e2e)', () => {
 
     afterEach(async () => {
       await prisma.card.deleteMany({ where: { userId } });
-      await prisma.player.deleteMany({ where: { name: { contains: 'Player_' } } });
+      await prisma.player.deleteMany({ where: { name: { startsWith: runPrefix } } });
     });
 
     it('should resolve consistently with same seed', async () => {
@@ -243,7 +245,7 @@ describe('MatchEngine (e2e)', () => {
       await prisma.match.deleteMany({ where: { id: match?.id } });
       await prisma.lineup.deleteMany({ where: { userId } });
       await prisma.card.deleteMany({ where: { userId } });
-      await prisma.player.deleteMany({ where: { name: { contains: 'Player_' } } });
+      await prisma.player.deleteMany({ where: { name: { startsWith: runPrefix } } });
     });
 
     it('should resolve match and update DB record', async () => {

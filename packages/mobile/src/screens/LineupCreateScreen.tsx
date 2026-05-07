@@ -33,9 +33,16 @@ export const LineupCreateScreen = () => {
   };
 
   const createLineup = async () => {
+    // In a real app, this token would come from auth state/storage (e.g. useAuth hook)
+    const token = null; // Mock: token is missing
+
+    if (!token) {
+      console.error('No authentication token found. Please log in.');
+      // alert('Please log in to create a lineup');
+      return;
+    }
+
     try {
-      // In a real app, this token would come from auth state/storage
-      const token = 'placeholder-token-replace-with-actual'; 
       const response = await fetch('http://localhost:3000/v1/lineups', {
         method: 'POST',
         headers: { 
