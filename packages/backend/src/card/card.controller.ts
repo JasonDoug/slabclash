@@ -3,6 +3,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   Body,
   UseGuards,
   Request,
@@ -36,5 +37,15 @@ export class CardController {
     @Body() dto: UpdateCardMetadataDto,
   ) {
     return this.cardService.updateCardMetadata(req.user.id, cardId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':cardId/flag')
+  async flagCard(
+    @Request() req: RequestWithUser,
+    @Param('cardId') cardId: string,
+    @Body('reason') reason: string,
+  ) {
+    return this.cardService.flagCard(req.user.id, cardId, reason);
   }
 }

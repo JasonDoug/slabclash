@@ -10,6 +10,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MatchCandidateService } from './match-candidate.service';
 import { CardModule } from '../card/card.module';
 import { RatingModule } from '../rating/rating.module';
+import { AntiFraudService } from './anti-fraud.service';
+import { RealtimeModule } from '../realtime/realtime.module';
 
 @Module({
   imports: [
@@ -18,11 +20,13 @@ import { RatingModule } from '../rating/rating.module';
     ConfigModule,
     CardModule,
     RatingModule,
+    RealtimeModule,
   ],
   controllers: [IngestionController],
   providers: [
     IngestionService,
     MatchCandidateService,
+    AntiFraudService,
     {
       provide: CVService,
       useFactory: (configService: ConfigService) => {

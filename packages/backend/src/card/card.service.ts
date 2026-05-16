@@ -223,4 +223,30 @@ export class CardService {
 
     return updatedCard;
   }
+
+  async flagCard(userId: string, cardId: string, reason: string) {
+    const card = await this.prisma.card.findUnique({
+      where: { id: cardId },
+    });
+
+    if (!card) {
+      throw new NotFoundException('Card not found');
+    }
+
+    // Update card status to flagged
+    await this.prisma.card.update({
+      where: { id: cardId },
+      data: { ingestionStatus: IngestionStatus.flagged },
+    });
+
+    // Create Dispute record
+    return this.prisma.dispute.create({
+      data: {
+        cardId,
+        userId,
+        reason,
+        status: 'open',
+      },
+    });
+  }
 }

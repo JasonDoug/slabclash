@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { S3Service } from '../storage/s3.service';
@@ -14,6 +15,8 @@ import * as imghash from 'imghash';
 import { MatchCandidateService } from './match-candidate.service';
 import { ConditionReported, IngestionStatus } from '@prisma/client';
 import { CardService } from '../card/card.service';
+import { AntiFraudService } from './anti-fraud.service';
+import { RealtimeService } from '../realtime/realtime.interface';
 
 @Injectable()
 export class IngestionService {
@@ -26,6 +29,8 @@ export class IngestionService {
     private matchCandidateService: MatchCandidateService,
     private ratingService: RatingService,
     private cardService: CardService,
+    private antiFraudService: AntiFraudService,
+    @Inject('RealtimeService') private realtimeService: RealtimeService,
   ) {}
 
   async createUploadUrls(
@@ -194,13 +199,31 @@ export class IngestionService {
       throw new NotFoundException('Player not found');
     }
 
+    // Duplicate detection via pHash
+    let ingestionStatus: IngestionStatus = 'verified';
+    let duplicateInfo: { isDuplicate: boolean; similarCardId?: string } = {
+      isDuplicate: false,
+    };
+
+    if (job.phash) {
+      duplicateInfo = await this.antiFraudService.checkDuplicate(
+        job.phash,
+        userId,
+      );
+      if (duplicateInfo.isDuplicate) {
+        ingestionStatus = 'flagged';
+      }
+    }
+
     // Determine ingestion status - flag for manual review if condition is poor/fair
-    const needsManualReview =
-      conditionReported === ConditionReported.poor ||
-      conditionReported === ConditionReported.fair;
-    const ingestionStatus: IngestionStatus = needsManualReview
-      ? 'flagged'
-      : 'verified';
+    if (ingestionStatus !== 'flagged') {
+      const needsManualReview =
+        conditionReported === ConditionReported.poor ||
+        conditionReported === ConditionReported.fair;
+      if (needsManualReview) {
+        ingestionStatus = 'flagged';
+      }
+    }
 
     // Build provenance with OCR text and candidate matches
     const provenance = {
@@ -226,6 +249,30 @@ export class IngestionService {
       playerStats,
       marketValueCents,
     });
+
+    // Create Dispute record if duplicate found
+    if (duplicateInfo.isDuplicate) {
+      await this.prisma.dispute.create({
+        data: {
+          cardId: card.id,
+          userId: userId,
+          reason: `possible duplicate (similar to card ${duplicateInfo.similarCardId})`,
+          status: 'open',
+        },
+      });
+
+      // Notify user the card is flagged
+      await this.realtimeService.publishToUser(userId, 'card.flagged', {
+        cardId: card.id,
+        reason: 'Possible duplicate detected',
+      });
+    } else if (ingestionStatus === 'flagged') {
+      // Notify user if flagged for other reasons (e.g. poor condition)
+      await this.realtimeService.publishToUser(userId, 'card.flagged', {
+        cardId: card.id,
+        reason: 'Manual review required (condition)',
+      });
+    }
 
     // Update job status
     await this.prisma.cardIngestionJob.update({
