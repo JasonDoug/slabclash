@@ -179,4 +179,4 @@ Implementation Status
 - [x] Sprint 4: Collection Management (Basic).
 - [x] Sprint 5: Lineups and Deck Building.
 - [x] Sprint 6: Matchmaking and Match Engine.
-- [ ] Sprint 7: Anti-fraud and Admin Dashboard.
+- [x] Sprint 7: Anti-fraud and Admin Dashboard.

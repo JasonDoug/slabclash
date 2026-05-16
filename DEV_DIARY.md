@@ -96,5 +96,21 @@ Implemented a Server-Sent Events (SSE) notification system to inform users of ma
 
 ### Next Steps
 - Prompt 12: Mobile (React Native) minimal flows: Camera, Upload, and Match UI.
+- Prompt 13: Admin Endpoints: Ingestion Queue & Rating Config
+
+## Prompt 13 — Admin Endpoints (2026-05-07)
+
+### Summary
+Implemented Admin-only endpoints for managing the card ingestion queue and rating engine configurations. Added RBAC with an Admin role.
+
+### Changes Made
+- `packages/backend/prisma/schema.prisma` — Added `UserRole` enum and `role` field to `User`.
+- `packages/backend/src/auth/admin.guard.ts` — Created RBAC guard for Admin access.
+- `packages/backend/src/admin/` — Created new module with controllers for ingestion queue and rating configs.
+- `packages/backend/src/admin/admin-rating.controller.ts` — Implemented config activation that enqueues batch recalculations.
+- `packages/backend/test/admin.e2e-spec.ts` — Added E2E tests for Admin RBAC and functionality.
+
+### Next Steps
+- Prompt 14: Anti-fraud: Duplication and Phash checks
 
 
