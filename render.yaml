@@ -5,7 +5,7 @@ services:
     env: node
     plan: starter # Web services need to be 'starter' or higher to stay on 24/7 for workers
     region: ohio # Change to your preferred region
-    buildCommand: yarn install && yarn workspace backend build:prod
+    buildCommand: yarn install && yarn workspace backend render:build
     startCommand: yarn workspace backend start:prod
     envVars:
       - key: NODE_ENV
