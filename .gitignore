@@ -3,38 +3,80 @@ node_modules/
 /packages/*/node_modules/*
 
 # Build output
-packages/*/dist/
 dist/
+build/
+packages/*/dist/
+packages/*/build/
+*.tsbuildinfo
 
 # Environment files
 .env
 .env.local
+.env.production
+.env.development
 packages/*/.env
+packages/*/.env.local
 
 # Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-.pnp.js
 
-# IDE
-.vscode/
+# IDE - VS Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# IDE - IntelliJ/WebStorm
 .idea/
+*.iml
+*.iws
+*.ipr
+
+# IDE - Others
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
+.DS_Store?
+._*
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
 # Logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+lerna-debug.log*
 
 # Test coverage
 coverage/
 *.lcov
 
 # Prisma
-# packages/*/prisma/migrations/ -- removed: migrations should be committed
+/packages/backend/prisma/generated-client/
+
+# Mobile (React Native)
+/packages/mobile/android/build/
+/packages/mobile/android/.gradle/
+/packages/mobile/android/app/build/
+/packages/mobile/ios/build/
+/packages/mobile/ios/Pods/
+/packages/mobile/ios/DerivedData/
+*.cert
+*.mobileprovision
+*.p12
+
+# Local dev/database data
+.crush/
+postgres_data/
+minio_data/
