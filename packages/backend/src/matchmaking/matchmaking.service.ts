@@ -1,4 +1,10 @@
-import { Injectable, Inject, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import Redis from 'ioredis';
 import crypto from 'crypto';
@@ -43,7 +49,8 @@ export class MatchmakingService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
-    @Inject('RealtimeService') private readonly realtimeService: RealtimeService,
+    @Inject('RealtimeService')
+    private readonly realtimeService: RealtimeService,
     private readonly matchEngineService: MatchEngineService,
   ) {}
 
@@ -68,16 +75,24 @@ export class MatchmakingService {
   }
 
   getTolerance(matchType: MatchType): number {
-    return matchType === MatchType.casual ? this.CASUAL_TOLERANCE : this.RANKED_TOLERANCE;
+    return matchType === MatchType.casual
+      ? this.CASUAL_TOLERANCE
+      : this.RANKED_TOLERANCE;
   }
 
-  async enqueue(userId: string, lineupId: string, matchType: MatchType): Promise<{ queued: boolean; queuePosition: number }> {
+  async enqueue(
+    userId: string,
+    lineupId: string,
+    matchType: MatchType,
+  ): Promise<{ queued: boolean; queuePosition: number }> {
     const lineup = await this.prisma.lineup.findFirst({
       where: { id: lineupId, userId },
     });
 
     if (!lineup) {
-      throw new NotFoundException('Lineup not found or does not belong to user');
+      throw new NotFoundException(
+        'Lineup not found or does not belong to user',
+      );
     }
 
     if (lineup.aggregatePowerScore === 0) {
@@ -107,12 +122,17 @@ export class MatchmakingService {
     );
 
     // Track active bin for optimized queue processing
-    await this.redis.sadd(this.getActiveBinsKey(matchType), powerBin.toString());
+    await this.redis.sadd(
+      this.getActiveBinsKey(matchType),
+      powerBin.toString(),
+    );
 
     const rank = await this.redis.zrank(queueKey, `${userId}:${lineupId}`);
     const queuePosition = rank !== null ? rank + 1 : 1;
 
-    this.logger.log(`User ${userId} enqueued for ${matchType} match with power bin ${powerBin}`);
+    this.logger.log(
+      `User ${userId} enqueued for ${matchType} match with power bin ${powerBin}`,
+    );
 
     return { queued: true, queuePosition };
   }
@@ -131,8 +151,14 @@ export class MatchmakingService {
     }
 
     const entry = JSON.parse(entryData);
-    const queueKey = this.getQueueKey(entry.matchType as MatchType, entry.powerBin);
-    const rank = await this.redis.zrank(queueKey, `${userId}:${entry.lineupId}`);
+    const queueKey = this.getQueueKey(
+      entry.matchType as MatchType,
+      entry.powerBin,
+    );
+    const rank = await this.redis.zrank(
+      queueKey,
+      `${userId}:${entry.lineupId}`,
+    );
 
     return {
       inQueue: true,
@@ -150,7 +176,10 @@ export class MatchmakingService {
     }
 
     const entry = JSON.parse(entryData);
-    const queueKey = this.getQueueKey(entry.matchType as MatchType, entry.powerBin);
+    const queueKey = this.getQueueKey(
+      entry.matchType as MatchType,
+      entry.powerBin,
+    );
 
     await this.redis.zrem(queueKey, `${userId}:${entry.lineupId}`);
     await this.redis.del(this.getQueueEntryKey(userId));
@@ -158,14 +187,20 @@ export class MatchmakingService {
     return true;
   }
 
-  async findMatch(userId: string): Promise<{ matched: boolean; matchId?: string }> {
+  async findMatch(
+    userId: string,
+  ): Promise<{ matched: boolean; matchId?: string }> {
     const entryData = await this.redis.get(this.getQueueEntryKey(userId));
     if (!entryData) {
       return { matched: false };
     }
 
     const entry = JSON.parse(entryData);
-    const binsToCheck = [entry.powerBin - 1, entry.powerBin, entry.powerBin + 1];
+    const binsToCheck = [
+      entry.powerBin - 1,
+      entry.powerBin,
+      entry.powerBin + 1,
+    ];
 
     for (const bin of binsToCheck) {
       if (bin < 0) continue;
@@ -180,10 +215,26 @@ export class MatchmakingService {
           const nextMembers = await this.redis.zrange(queueKey, 1, 1);
           if (nextMembers.length === 0) continue;
           const [nextUserId, nextLineupId] = nextMembers[0].split(':');
-          return this.createMatch(userId, entry.lineupId, nextUserId, nextLineupId, entry.matchType, queueKey, nextMembers[0]);
+          return this.createMatch(
+            userId,
+            entry.lineupId,
+            nextUserId,
+            nextLineupId,
+            entry.matchType,
+            queueKey,
+            nextMembers[0],
+          );
         }
 
-        return this.createMatch(userId, entry.lineupId, otherUserId, otherLineupId, entry.matchType, queueKey, members[0]);
+        return this.createMatch(
+          userId,
+          entry.lineupId,
+          otherUserId,
+          otherLineupId,
+          entry.matchType,
+          queueKey,
+          members[0],
+        );
       }
     }
 
@@ -216,7 +267,9 @@ export class MatchmakingService {
       },
     });
 
-    this.logger.log(`Match created: ${match.id} between ${userAId} and ${userBId}`);
+    this.logger.log(
+      `Match created: ${match.id} between ${userAId} and ${userBId}`,
+    );
     await this.notifyMatchFound(lineupAId, lineupBId, match.id, matchType);
 
     // Auto-resolve match for MVP (simulating countdown)
@@ -224,7 +277,7 @@ export class MatchmakingService {
       setTimeout(async () => {
         try {
           await this.notifyMatchStart(userAId, userBId, match.id);
-          
+
           setTimeout(async () => {
             try {
               const dto = new ResolveMatchDto();
@@ -232,11 +285,17 @@ export class MatchmakingService {
               await this.matchEngineService.resolveMatch(dto);
               this.logger.log(`Auto-resolved match ${match.id}`);
             } catch (err) {
-              this.logger.error(`Failed to auto-resolve match ${match.id}`, err);
+              this.logger.error(
+                `Failed to auto-resolve match ${match.id}`,
+                err,
+              );
             }
           }, 2000);
         } catch (err) {
-          this.logger.error(`Failed to trigger match flow for ${match.id}`, err);
+          this.logger.error(
+            `Failed to trigger match flow for ${match.id}`,
+            err,
+          );
         }
       }, 1000);
     }
@@ -247,11 +306,19 @@ export class MatchmakingService {
   /**
    * For testing purposes: manually triggers the match.start notification.
    */
-  async startMatchForTest(userAId: string, userBId: string, matchId: string): Promise<void> {
+  async startMatchForTest(
+    userAId: string,
+    userBId: string,
+    matchId: string,
+  ): Promise<void> {
     return this.notifyMatchStart(userAId, userBId, matchId);
   }
 
-  private async notifyMatchStart(userAId: string, userBId: string, matchId: string): Promise<void> {
+  private async notifyMatchStart(
+    userAId: string,
+    userBId: string,
+    matchId: string,
+  ): Promise<void> {
     const payload = { matchId };
     await Promise.all([
       this.realtimeService.publishToUser(userAId, 'match.start', payload),
@@ -259,13 +326,26 @@ export class MatchmakingService {
     ]);
   }
 
-  private async notifyMatchFound(lineupAId: string, lineupBId: string, matchId: string, matchType: string): Promise<void> {
-    this.logger.log(`Match found! Match ID: ${matchId}, Lineups: ${lineupAId}, ${lineupBId}`);
+  private async notifyMatchFound(
+    lineupAId: string,
+    lineupBId: string,
+    matchId: string,
+    matchType: string,
+  ): Promise<void> {
+    this.logger.log(
+      `Match found! Match ID: ${matchId}, Lineups: ${lineupAId}, ${lineupBId}`,
+    );
 
     // Fetch lineup info for payload
     const [lineupA, lineupB] = await Promise.all([
-      this.prisma.lineup.findUnique({ where: { id: lineupAId }, include: { user: true } }),
-      this.prisma.lineup.findUnique({ where: { id: lineupBId }, include: { user: true } }),
+      this.prisma.lineup.findUnique({
+        where: { id: lineupAId },
+        include: { user: true },
+      }),
+      this.prisma.lineup.findUnique({
+        where: { id: lineupBId },
+        include: { user: true },
+      }),
     ]);
 
     if (!lineupA?.user || !lineupB?.user) {
@@ -283,8 +363,14 @@ export class MatchmakingService {
     };
 
     await Promise.all([
-      this.realtimeService.publishToUser(lineupA.user.id, 'match.found', { ...payload, opponent: payload.opponentB }),
-      this.realtimeService.publishToUser(lineupB.user.id, 'match.found', { ...payload, opponent: payload.opponentA }),
+      this.realtimeService.publishToUser(lineupA.user.id, 'match.found', {
+        ...payload,
+        opponent: payload.opponentB,
+      }),
+      this.realtimeService.publishToUser(lineupB.user.id, 'match.found', {
+        ...payload,
+        opponent: payload.opponentA,
+      }),
     ]);
   }
 
@@ -359,7 +445,9 @@ export class MatchmakingService {
     ]);
 
     if (!lineupA || !lineupB) {
-      this.logger.warn(`Lineup validation failed for ${lineupAId} or ${lineupBId}`);
+      this.logger.warn(
+        `Lineup validation failed for ${lineupAId} or ${lineupBId}`,
+      );
       return { matched: false };
     }
 
@@ -383,7 +471,7 @@ export class MatchmakingService {
       setTimeout(async () => {
         try {
           await this.notifyMatchStart(userAId, userBId, match.id);
-          
+
           setTimeout(async () => {
             try {
               const dto = new ResolveMatchDto();
@@ -391,11 +479,17 @@ export class MatchmakingService {
               await this.matchEngineService.resolveMatch(dto);
               this.logger.log(`Auto-resolved match ${match.id} (worker)`);
             } catch (err) {
-              this.logger.error(`Failed to auto-resolve match ${match.id} (worker)`, err);
+              this.logger.error(
+                `Failed to auto-resolve match ${match.id} (worker)`,
+                err,
+              );
             }
           }, 2000);
         } catch (err) {
-          this.logger.error(`Failed to trigger match flow for ${match.id} (worker)`, err);
+          this.logger.error(
+            `Failed to trigger match flow for ${match.id} (worker)`,
+            err,
+          );
         }
       }, 1000);
     }

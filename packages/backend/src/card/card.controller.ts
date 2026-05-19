@@ -25,7 +25,10 @@ export class CardController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':cardId')
-  async getCard(@Request() req: RequestWithUser, @Param('cardId') cardId: string) {
+  async getCard(
+    @Request() req: RequestWithUser,
+    @Param('cardId') cardId: string,
+  ) {
     return this.cardService.getCardWithBreakdown(req.user.id, cardId);
   }
 

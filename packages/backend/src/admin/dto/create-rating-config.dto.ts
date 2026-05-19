@@ -1,4 +1,10 @@
-import { IsString, IsNotEmpty, IsObject, IsBoolean, IsOptional } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsObject,
+  IsBoolean,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateRatingConfigDto {
   @IsString()

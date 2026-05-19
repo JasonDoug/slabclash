@@ -36,7 +36,7 @@ describe('LineupService', () => {
 
   it('should create lineup with valid cards', async () => {
     const userId = 'user-1';
-    const slots = { 'P1': 'card-1', 'P2': 'card-2' };
+    const slots = { P1: 'card-1', P2: 'card-2' };
     const cards = [
       { id: 'card-1', userId, powerScore: 100, rarity: 'common' },
       { id: 'card-2', userId, powerScore: 200, rarity: 'rare' },
@@ -60,11 +60,13 @@ describe('LineupService', () => {
 
   it('should reject lineup with cards not owned by user', async () => {
     const userId = 'user-1';
-    const slots = { 'P1': 'card-1' };
+    const slots = { P1: 'card-1' };
 
     mockPrismaService.card.findMany.mockResolvedValue([]);
 
-    await expect(service.createLineup(userId, 'Test', slots)).rejects.toThrow(BadRequestException);
+    await expect(service.createLineup(userId, 'Test', slots)).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('should get lineup by id', async () => {
@@ -78,6 +80,8 @@ describe('LineupService', () => {
   it('should throw NotFoundException for non-existent lineup', async () => {
     mockPrismaService.lineup.findFirst.mockResolvedValue(null);
 
-    await expect(service.getLineup('invalid', 'user-1')).rejects.toThrow(NotFoundException);
+    await expect(service.getLineup('invalid', 'user-1')).rejects.toThrow(
+      NotFoundException,
+    );
   });
 });

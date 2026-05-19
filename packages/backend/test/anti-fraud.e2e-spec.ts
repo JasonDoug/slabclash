@@ -64,7 +64,9 @@ describe('Anti-Fraud (e2e)', () => {
       await prisma.card.deleteMany({ where: { userId } });
       await prisma.user.delete({ where: { id: userId } }).catch(() => {});
     }
-    await prisma.ratingConfig.deleteMany({ where: { version: 'e2e-antifraud' } });
+    await prisma.ratingConfig.deleteMany({
+      where: { version: 'e2e-antifraud' },
+    });
     await app.close();
   });
 
@@ -89,7 +91,9 @@ describe('Anti-Fraud (e2e)', () => {
 
     const { uploadUrlFront: url1, scanJobId: jobId1 } = uploadRes1.body;
     try {
-      await axios.put(url1, fileContent, { headers: { 'Content-Type': 'image/png' } });
+      await axios.put(url1, fileContent, {
+        headers: { 'Content-Type': 'image/png' },
+      });
       await request(app.getHttpServer())
         .post(`/v1/scan/process/${jobId1}`)
         .set('Authorization', `Bearer ${accessToken}`)
@@ -115,7 +119,9 @@ describe('Anti-Fraud (e2e)', () => {
         .expect(201);
 
       const { uploadUrlFront: url2, scanJobId: jobId2 } = uploadRes2.body;
-      await axios.put(url2, fileContent, { headers: { 'Content-Type': 'image/png' } });
+      await axios.put(url2, fileContent, {
+        headers: { 'Content-Type': 'image/png' },
+      });
       await request(app.getHttpServer())
         .post(`/v1/scan/process/${jobId2}`)
         .set('Authorization', `Bearer ${accessToken}`)
@@ -145,10 +151,11 @@ describe('Anti-Fraud (e2e)', () => {
       });
       expect(dispute).toBeDefined();
       expect(dispute.reason).toContain('possible duplicate');
-
     } catch (error) {
       if (error.response?.status === 507) {
-        console.warn('MinIO insufficient storage (507), skipping remaining duplicate detection steps');
+        console.warn(
+          'MinIO insufficient storage (507), skipping remaining duplicate detection steps',
+        );
       } else {
         throw error;
       }
@@ -173,7 +180,7 @@ describe('Anti-Fraud (e2e)', () => {
         rarity: 'common',
         imageFrontKey: 'manual-key',
         ingestionStatus: 'verified',
-      }
+      },
     });
 
     const res = await request(app.getHttpServer())
@@ -183,8 +190,10 @@ describe('Anti-Fraud (e2e)', () => {
       .expect(201);
 
     expect(res.body.reason).toBe('Suspicious card details');
-    
-    const updatedCard = await prisma.card.findUnique({ where: { id: card.id } });
+
+    const updatedCard = await prisma.card.findUnique({
+      where: { id: card.id },
+    });
     expect(updatedCard.ingestionStatus).toBe('flagged');
   });
 });

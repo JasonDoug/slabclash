@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { MatchmakingService } from '../matchmaking.service';
 
 @Injectable()
@@ -27,14 +32,22 @@ export class MatchmakingWorker implements OnModuleInit, OnModuleDestroy {
       try {
         const result = await this.matchmakingService.processQueue();
         if (result.matches > 0) {
-          this.logger.log(`Processed ${result.processed} entries, created ${result.matches} matches`);
+          this.logger.log(
+            `Processed ${result.processed} entries, created ${result.matches} matches`,
+          );
         }
       } catch (error) {
         // Log specific error types for better debugging
         if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
-          this.logger.error('Redis connection error - matchmaking temporarily paused', error.message);
+          this.logger.error(
+            'Redis connection error - matchmaking temporarily paused',
+            error.message,
+          );
         } else if (error.name === 'PrismaClientKnownRequestError') {
-          this.logger.error('Database error in matchmaking worker', error.message);
+          this.logger.error(
+            'Database error in matchmaking worker',
+            error.message,
+          );
         } else {
           this.logger.error('Unexpected error in matchmaking worker', error);
         }

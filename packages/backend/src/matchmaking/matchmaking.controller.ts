@@ -1,6 +1,17 @@
-import { Controller, Post, Body, Get, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { MatchmakingService } from './matchmaking.service';
-import { EnqueueMatchmakingDto, MatchType } from './dto/enqueue-matchmaking.dto';
+import {
+  EnqueueMatchmakingDto,
+  MatchType,
+} from './dto/enqueue-matchmaking.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('v1/matchmaking')

@@ -1,10 +1,17 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RatingService } from './rating.service';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
-export class RatingRecalculationWorker implements OnModuleInit, OnModuleDestroy {
+export class RatingRecalculationWorker
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(RatingRecalculationWorker.name);
   private intervalId: NodeJS.Timeout | null = null;
   private readonly POLL_INTERVAL_MS = 10000; // 10 seconds
@@ -25,7 +32,10 @@ export class RatingRecalculationWorker implements OnModuleInit, OnModuleDestroy 
   start() {
     if (this.intervalId) return;
     this.logger.log('Rating recalculation worker started');
-    this.intervalId = setInterval(() => this.processJobs(), this.POLL_INTERVAL_MS);
+    this.intervalId = setInterval(
+      () => this.processJobs(),
+      this.POLL_INTERVAL_MS,
+    );
   }
 
   stop() {
@@ -51,7 +61,10 @@ export class RatingRecalculationWorker implements OnModuleInit, OnModuleDestroy 
       try {
         await this.processJob(job.id, job.cardId);
       } catch (err) {
-        this.logger.error(`Failed to process rating job ${job.id} for card ${job.cardId}`, err.stack);
+        this.logger.error(
+          `Failed to process rating job ${job.id} for card ${job.cardId}`,
+          err.stack,
+        );
         await this.prisma.ratingJob.update({
           where: { id: job.id },
           data: { status: 'failed' },
@@ -96,14 +109,23 @@ export class RatingRecalculationWorker implements OnModuleInit, OnModuleDestroy 
       });
 
       // 2. Write AuditLog (only if changed, for idempotency)
-      if (oldPowerScore !== ratingResult.powerScore || oldVersion !== ratingResult.ratingConfigVersion) {
+      if (
+        oldPowerScore !== ratingResult.powerScore ||
+        oldVersion !== ratingResult.ratingConfigVersion
+      ) {
         await tx.auditLog.create({
           data: {
             entityType: 'Card',
             entityId: cardId,
             action: 'recalculate_score',
-            oldValue: { powerScore: oldPowerScore, version: oldVersion } as Prisma.InputJsonValue,
-            newValue: { powerScore: ratingResult.powerScore, version: ratingResult.ratingConfigVersion } as Prisma.InputJsonValue,
+            oldValue: {
+              powerScore: oldPowerScore,
+              version: oldVersion,
+            },
+            newValue: {
+              powerScore: ratingResult.powerScore,
+              version: ratingResult.ratingConfigVersion,
+            },
           },
         });
       }
@@ -115,6 +137,8 @@ export class RatingRecalculationWorker implements OnModuleInit, OnModuleDestroy 
       });
     });
 
-    this.logger.log(`Successfully recalculated score for card ${cardId} (Score: ${ratingResult.powerScore})`);
+    this.logger.log(
+      `Successfully recalculated score for card ${cardId} (Score: ${ratingResult.powerScore})`,
+    );
   }
 }

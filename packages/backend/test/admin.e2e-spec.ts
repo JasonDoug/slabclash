@@ -20,7 +20,9 @@ describe('Admin (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
 
     prisma = app.get<PrismaService>(PrismaService);
@@ -29,8 +31,12 @@ describe('Admin (e2e)', () => {
     const adminEmail = `admin_${Date.now()}@test.com`;
     await request(app.getHttpServer())
       .post('/v1/auth/signup')
-      .send({ username: `admin_${Date.now()}`, email: adminEmail, password: 'Password123!' });
-    
+      .send({
+        username: `admin_${Date.now()}`,
+        email: adminEmail,
+        password: 'Password123!',
+      });
+
     // Promote to Admin
     const adminUser = await prisma.user.update({
       where: { email: adminEmail },
@@ -47,7 +53,11 @@ describe('Admin (e2e)', () => {
     const userEmail = `user_${Date.now()}@test.com`;
     const userSignup = await request(app.getHttpServer())
       .post('/v1/auth/signup')
-      .send({ username: `user_${Date.now()}`, email: userEmail, password: 'Password123!' });
+      .send({
+        username: `user_${Date.now()}`,
+        email: userEmail,
+        password: 'Password123!',
+      });
     userId = userSignup.body.id;
 
     const userLogin = await request(app.getHttpServer())
@@ -88,16 +98,16 @@ describe('Admin (e2e)', () => {
         .send({
           version: 'v2-test',
           weights: { momentum: 0.1, playerStats: 0.9 },
-          normalizationBounds: { 
-            momentum: { min: 0, max: 10 }, 
+          normalizationBounds: {
+            momentum: { min: 0, max: 10 },
             playerStats: { min: 0, max: 100 },
             marketValueCents: { min: 0, max: 10000 },
             rarity: { min: 1, max: 5 },
-            conditionEstimatedScore: { min: 0, max: 10 }
+            conditionEstimatedScore: { min: 0, max: 10 },
           },
         })
         .expect(201);
-      
+
       configId = res.body.id;
       expect(res.body.version).toBe('v2-test');
     });
@@ -107,7 +117,7 @@ describe('Admin (e2e)', () => {
         .post(`/v1/admin/rating-config/${configId}/activate`)
         .set('Authorization', `Bearer ${adminToken}`)
         .expect(201);
-      
+
       expect(res.body.activated).toBe('v2-test');
       expect(res.body.enqueuedJobs).toBeDefined();
     });

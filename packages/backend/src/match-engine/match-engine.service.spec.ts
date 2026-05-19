@@ -46,8 +46,16 @@ describe('MatchEngineService', () => {
         { id: 'card-4', playerStats: 88, marketValueCents: 1100 },
       ]);
 
-      const dto1: any = { lineupA: { slots: lineupSlotsA }, lineupB: { slots: lineupSlotsB }, matchSeed: seed };
-      const dto2: any = { lineupA: { slots: lineupSlotsA }, lineupB: { slots: lineupSlotsB }, matchSeed: seed };
+      const dto1: any = {
+        lineupA: { slots: lineupSlotsA },
+        lineupB: { slots: lineupSlotsB },
+        matchSeed: seed,
+      };
+      const dto2: any = {
+        lineupA: { slots: lineupSlotsA },
+        lineupB: { slots: lineupSlotsB },
+        matchSeed: seed,
+      };
 
       const result1 = await service.resolveMatch(dto1);
       const result2 = await service.resolveMatch(dto2);
@@ -66,8 +74,16 @@ describe('MatchEngineService', () => {
         { id: 'card-2', playerStats: 80, marketValueCents: 1000 },
       ]);
 
-      const result1 = await service.resolveMatch({ lineupA: { slots: lineupSlotsA }, lineupB: { slots: lineupSlotsB }, matchSeed: 'seed-A' } as any);
-      const result2 = await service.resolveMatch({ lineupA: { slots: lineupSlotsA }, lineupB: { slots: lineupSlotsB }, matchSeed: 'seed-B' } as any);
+      const result1 = await service.resolveMatch({
+        lineupA: { slots: lineupSlotsA },
+        lineupB: { slots: lineupSlotsB },
+        matchSeed: 'seed-A',
+      } as any);
+      const result2 = await service.resolveMatch({
+        lineupA: { slots: lineupSlotsA },
+        lineupB: { slots: lineupSlotsB },
+        matchSeed: 'seed-B',
+      } as any);
 
       expect(['A', 'B', 'draw']).toContain(result1.winner);
       expect(['A', 'B', 'draw']).toContain(result2.winner);
@@ -84,7 +100,11 @@ describe('MatchEngineService', () => {
         { id: 'card-2', playerStats: 70, marketValueCents: 1000 },
       ]);
 
-      const result = await service.resolveMatch({ lineupA: { slots: lineupSlotsA }, lineupB: { slots: lineupSlotsB }, matchSeed: 'seed' } as any);
+      const result = await service.resolveMatch({
+        lineupA: { slots: lineupSlotsA },
+        lineupB: { slots: lineupSlotsB },
+        matchSeed: 'seed',
+      } as any);
 
       expect(result.scoreA).toBe(1);
       expect(result.scoreB).toBe(0);
@@ -102,7 +122,11 @@ describe('MatchEngineService', () => {
         { id: 'card-2', playerStats: 85, marketValueCents: 1000 },
       ]);
 
-      const result = await service.resolveMatch({ lineupA: { slots: lineupSlotsA }, lineupB: { slots: lineupSlotsB }, matchSeed: 'seed' } as any);
+      const result = await service.resolveMatch({
+        lineupA: { slots: lineupSlotsA },
+        lineupB: { slots: lineupSlotsB },
+        matchSeed: 'seed',
+      } as any);
 
       expect(result.scoreA).toBe(0);
       expect(result.scoreB).toBe(1);
@@ -118,7 +142,11 @@ describe('MatchEngineService', () => {
         { id: 'card-2', playerStats: 80, marketValueCents: 1000 },
       ]);
 
-      const result = await service.resolveMatch({ lineupA: { slots: lineupSlotsA }, lineupB: { slots: lineupSlotsB }, matchSeed: 'seed' } as any);
+      const result = await service.resolveMatch({
+        lineupA: { slots: lineupSlotsA },
+        lineupB: { slots: lineupSlotsB },
+        matchSeed: 'seed',
+      } as any);
 
       expect(result.scoreA).toBe(0.5);
       expect(result.scoreB).toBe(0.5);
@@ -136,10 +164,16 @@ describe('MatchEngineService', () => {
         { id: 'card-2', playerStats: 80, marketValueCents: 900 },
       ]);
 
-      const result = await service.resolveMatch({ lineupA: { slots: lineupSlotsA }, lineupB: { slots: lineupSlotsB }, matchSeed: 'seed' } as any);
+      const result = await service.resolveMatch({
+        lineupA: { slots: lineupSlotsA },
+        lineupB: { slots: lineupSlotsB },
+        matchSeed: 'seed',
+      } as any);
 
       expect(result.winner).toBe('A');
-      expect(result.events.some((e: any) => e.type === 'tiebreaker_market_value')).toBe(true);
+      expect(
+        result.events.some((e: any) => e.type === 'tiebreaker_market_value'),
+      ).toBe(true);
     });
 
     it('should use momentum tiebreaker when scores and market value are tied', async () => {
@@ -158,7 +192,9 @@ describe('MatchEngineService', () => {
       } as any);
 
       expect(result.winner).toBe('A');
-      expect(result.events.some((e: any) => e.type === 'tiebreaker_momentum')).toBe(true);
+      expect(
+        result.events.some((e: any) => e.type === 'tiebreaker_momentum'),
+      ).toBe(true);
     });
 
     it('should use sudden death when all tiebreakers are tied', async () => {
@@ -176,7 +212,9 @@ describe('MatchEngineService', () => {
         matchSeed: 'seed-123',
       } as any);
 
-      expect(result.events.some((e: any) => e.type === 'tiebreaker_sudden_death')).toBe(true);
+      expect(
+        result.events.some((e: any) => e.type === 'tiebreaker_sudden_death'),
+      ).toBe(true);
       expect(['A', 'B']).toContain(result.winner);
     });
   });
@@ -191,7 +229,11 @@ describe('MatchEngineService', () => {
         { id: 'card-2', playerStats: 75, marketValueCents: 1000 },
       ]);
 
-      const result = await service.resolveMatch({ lineupA: { slots: lineupSlotsA }, lineupB: { slots: lineupSlotsB }, matchSeed: 'seed' } as any);
+      const result = await service.resolveMatch({
+        lineupA: { slots: lineupSlotsA },
+        lineupB: { slots: lineupSlotsB },
+        matchSeed: 'seed',
+      } as any);
 
       expect(result).toHaveProperty('winner');
       expect(result).toHaveProperty('scoreA');
@@ -213,8 +255,18 @@ describe('MatchEngineService', () => {
   describe('matchId flow', () => {
     it('should fetch lineups from DB and update match record', async () => {
       const matchId = 'match-123';
-      const lineupA = { id: 'lineup-A', slots: { PG: 'card-1' }, userId: 'user-1', aggregateMomentum: 0 };
-      const lineupB = { id: 'lineup-B', slots: { PG: 'card-2' }, userId: 'user-2', aggregateMomentum: 0 };
+      const lineupA = {
+        id: 'lineup-A',
+        slots: { PG: 'card-1' },
+        userId: 'user-1',
+        aggregateMomentum: 0,
+      };
+      const lineupB = {
+        id: 'lineup-B',
+        slots: { PG: 'card-2' },
+        userId: 'user-2',
+        aggregateMomentum: 0,
+      };
 
       mockPrismaService.match.findUnique.mockResolvedValue({
         id: matchId,
@@ -287,7 +339,9 @@ describe('MatchEngineService', () => {
         resolutionResults: null,
       });
 
-      await expect(service.resolveMatch({ matchId } as any, 'user-3')).rejects.toThrow('You do not have permission to resolve this match');
+      await expect(
+        service.resolveMatch({ matchId } as any, 'user-3'),
+      ).rejects.toThrow('You do not have permission to resolve this match');
     });
   });
 });

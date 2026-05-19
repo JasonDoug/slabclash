@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException, BadRequestException, Logger, ForbiddenException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Logger,
+  ForbiddenException,
+  Inject,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import seedrandom from 'seedrandom';
@@ -13,7 +20,11 @@ interface LineupInput {
   userId?: string;
   slots: Record<string, string>;
   aggregateMomentum?: number;
-  cards?: Array<{ id: string; playerStats: number | null; marketValueCents: number | null }>;
+  cards?: Array<{
+    id: string;
+    playerStats: number | null;
+    marketValueCents: number | null;
+  }>;
 }
 
 @Injectable()
@@ -22,10 +33,14 @@ export class MatchEngineService {
 
   constructor(
     private readonly prisma: PrismaService,
-    @Inject('RealtimeService') private readonly realtimeService: RealtimeService,
+    @Inject('RealtimeService')
+    private readonly realtimeService: RealtimeService,
   ) {}
 
-  async resolveMatch(dto: ResolveMatchDto, requestUserId?: string): Promise<ResolutionResult> {
+  async resolveMatch(
+    dto: ResolveMatchDto,
+    requestUserId?: string,
+  ): Promise<ResolutionResult> {
     let lineupAInput: LineupInput;
     let lineupBInput: LineupInput;
     let matchSeed: string;
@@ -51,13 +66,17 @@ export class MatchEngineService {
         const ownerA = match.lineupA.userId;
         const ownerB = match.lineupB.userId;
         if (requestUserId !== ownerA && requestUserId !== ownerB) {
-          throw new ForbiddenException('You do not have permission to resolve this match');
+          throw new ForbiddenException(
+            'You do not have permission to resolve this match',
+          );
         }
       }
 
       if (match.resolutionResults) {
-        this.logger.log(`Match ${matchId} already resolved, returning stored results`);
-        const stored = match.resolutionResults as any;
+        this.logger.log(
+          `Match ${matchId} already resolved, returning stored results`,
+        );
+        const stored = match.resolutionResults;
         // Normalize resolvedAt from ISO string to Date
         if (typeof stored.resolvedAt === 'string') {
           stored.resolvedAt = new Date(stored.resolvedAt);
@@ -70,17 +89,30 @@ export class MatchEngineService {
       lineupBInput = this.prismaLineupToInput(match.lineupB);
     } else if (dto.lineupA && dto.lineupB && dto.matchSeed) {
       matchSeed = dto.matchSeed;
-      lineupAInput = { slots: dto.lineupA.slots, aggregateMomentum: dto.lineupA.aggregateMomentum };
-      lineupBInput = { slots: dto.lineupB.slots, aggregateMomentum: dto.lineupB.aggregateMomentum };
+      lineupAInput = {
+        slots: dto.lineupA.slots,
+        aggregateMomentum: dto.lineupA.aggregateMomentum,
+      };
+      lineupBInput = {
+        slots: dto.lineupB.slots,
+        aggregateMomentum: dto.lineupB.aggregateMomentum,
+      };
     } else {
-      throw new BadRequestException('Invalid input: provide matchId or lineupA + lineupB + matchSeed');
+      throw new BadRequestException(
+        'Invalid input: provide matchId or lineupA + lineupB + matchSeed',
+      );
     }
 
     // Validate both lineups have same position keys
     const positionsA = Object.keys(lineupAInput.slots);
     const positionsB = Object.keys(lineupBInput.slots);
-    if (positionsA.length !== positionsB.length || !positionsA.every(p => positionsB.includes(p))) {
-      throw new BadRequestException('Lineups must have identical position keys');
+    if (
+      positionsA.length !== positionsB.length ||
+      !positionsA.every((p) => positionsB.includes(p))
+    ) {
+      throw new BadRequestException(
+        'Lineups must have identical position keys',
+      );
     }
 
     // Fetch all cards for both lineups
@@ -92,13 +124,25 @@ export class MatchEngineService {
       where: { id: { in: allCardIds } },
     });
 
-    lineupAInput.cards = positionsA.map(pos => {
+    lineupAInput.cards = positionsA.map((pos) => {
       const cardId = lineupAInput.slots[pos];
-      return cards.find(c => c.id === cardId) || { id: cardId, playerStats: null, marketValueCents: null };
+      return (
+        cards.find((c) => c.id === cardId) || {
+          id: cardId,
+          playerStats: null,
+          marketValueCents: null,
+        }
+      );
     });
-    lineupBInput.cards = positionsB.map(pos => {
+    lineupBInput.cards = positionsB.map((pos) => {
       const cardId = lineupBInput.slots[pos];
-      return cards.find(c => c.id === cardId) || { id: cardId, playerStats: null, marketValueCents: null };
+      return (
+        cards.find((c) => c.id === cardId) || {
+          id: cardId,
+          playerStats: null,
+          marketValueCents: null,
+        }
+      );
     });
 
     // Create seeded RNG
@@ -172,7 +216,12 @@ export class MatchEngineService {
         where: { id: matchId },
         data: {
           status: 'completed',
-          winnerLineupId: winner === 'A' ? lineupAInput.id : winner === 'B' ? lineupBInput.id : undefined,
+          winnerLineupId:
+            winner === 'A'
+              ? lineupAInput.id
+              : winner === 'B'
+                ? lineupBInput.id
+                : undefined,
           completedAt: new Date(),
           resolutionResults: result as unknown as Prisma.InputJsonValue,
         },
@@ -182,8 +231,16 @@ export class MatchEngineService {
       if (lineupAInput.userId && lineupBInput.userId) {
         try {
           await Promise.all([
-            this.realtimeService.publishToUser(lineupAInput.userId, 'match.result', result),
-            this.realtimeService.publishToUser(lineupBInput.userId, 'match.result', result),
+            this.realtimeService.publishToUser(
+              lineupAInput.userId,
+              'match.result',
+              result,
+            ),
+            this.realtimeService.publishToUser(
+              lineupBInput.userId,
+              'match.result',
+              result,
+            ),
           ]);
         } catch (err) {
           this.logger.error(
@@ -198,14 +255,21 @@ export class MatchEngineService {
   }
 
   private computePositionStat(
-    card: { id: string; playerStats: number | null; marketValueCents: number | null },
+    card: {
+      id: string;
+      playerStats: number | null;
+      marketValueCents: number | null;
+    },
     position: string,
   ): number {
     void position; // MVP: no position-specific weights
     return card.playerStats || 0;
   }
 
-  private comparePositions(statA: number, statB: number): {
+  private comparePositions(
+    statA: number,
+    statB: number,
+  ): {
     winner: 'A' | 'B' | 'draw';
     pointsA: number;
     pointsB: number;
@@ -222,8 +286,12 @@ export class MatchEngineService {
     events: MatchEvent[],
   ): 'A' | 'B' | 'draw' {
     // Tiebreaker 1: aggregateMarketValue
-    const marketValueA = lineupA.cards?.reduce((sum, c) => sum + (c.marketValueCents || 0), 0) || 0;
-    const marketValueB = lineupB.cards?.reduce((sum, c) => sum + (c.marketValueCents || 0), 0) || 0;
+    const marketValueA =
+      lineupA.cards?.reduce((sum, c) => sum + (c.marketValueCents || 0), 0) ||
+      0;
+    const marketValueB =
+      lineupB.cards?.reduce((sum, c) => sum + (c.marketValueCents || 0), 0) ||
+      0;
 
     if (marketValueA > marketValueB) {
       events.push({
@@ -265,10 +333,15 @@ export class MatchEngineService {
       type: 'tiebreaker_sudden_death',
       description: `Tiebreaker: Sudden death - Lineup ${suddenDeathResult} wins (seed-based RNG)`,
     });
-    return suddenDeathResult as 'A' | 'B';
+    return suddenDeathResult;
   }
 
-  private prismaLineupToInput(lineup: { id: string; slots: any; userId?: string; aggregateMomentum?: number }): LineupInput {
+  private prismaLineupToInput(lineup: {
+    id: string;
+    slots: any;
+    userId?: string;
+    aggregateMomentum?: number;
+  }): LineupInput {
     return {
       id: lineup.id,
       userId: lineup.userId,

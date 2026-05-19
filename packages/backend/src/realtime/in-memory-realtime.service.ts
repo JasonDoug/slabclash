@@ -9,7 +9,11 @@ export class InMemoryRealtimeService implements RealtimeService {
   private events = new Map<string, RealtimeEvent[]>();
   private listeners = new Map<string, Array<(event: RealtimeEvent) => void>>();
 
-  async publishToUser(userId: string, eventName: string, payload: any): Promise<void> {
+  async publishToUser(
+    userId: string,
+    eventName: string,
+    payload: any,
+  ): Promise<void> {
     const event: RealtimeEvent = {
       event: eventName,
       data: payload,
@@ -26,7 +30,7 @@ export class InMemoryRealtimeService implements RealtimeService {
 
     // Notify listeners (for SSE and tests)
     const userListeners = this.listeners.get(userId) || [];
-    userListeners.forEach(cb => cb(event));
+    userListeners.forEach((cb) => cb(event));
 
     this.logger.log(`Published ${eventName} to user ${userId}`);
   }

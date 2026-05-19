@@ -22,9 +22,10 @@ describe('Matchmaking Integration', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    matchmakingService = moduleFixture.get<MatchmakingService>(MatchmakingService);
+    matchmakingService =
+      moduleFixture.get<MatchmakingService>(MatchmakingService);
     const prismaService = moduleFixture.get<PrismaService>(PrismaService);
-    prisma = prismaService as unknown as PrismaClient;
+    prisma = prismaService;
     redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
   });
 
@@ -116,10 +117,18 @@ describe('Matchmaking Integration', () => {
       },
     });
 
-    const result1 = await matchmakingService.enqueue(user1.id, lineup1.id, MatchType.casual);
+    const result1 = await matchmakingService.enqueue(
+      user1.id,
+      lineup1.id,
+      MatchType.casual,
+    );
     expect(result1.queued).toBe(true);
 
-    const result2 = await matchmakingService.enqueue(user2.id, lineup2.id, MatchType.casual);
+    const result2 = await matchmakingService.enqueue(
+      user2.id,
+      lineup2.id,
+      MatchType.casual,
+    );
     expect(result2.queued).toBe(true);
 
     const processResult = await matchmakingService.processQueue();

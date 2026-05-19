@@ -30,9 +30,7 @@ describe('AdminRatingController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AdminRatingController],
-      providers: [
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
+      providers: [{ provide: PrismaService, useValue: mockPrismaService }],
     }).compile();
 
     controller = module.get<AdminRatingController>(AdminRatingController);
@@ -60,7 +58,9 @@ describe('AdminRatingController', () => {
     it('should throw BadRequestException if config not found', async () => {
       mockPrismaService.ratingConfig.findUnique.mockResolvedValue(null);
 
-      await expect(controller.activateConfig('invalid')).rejects.toThrow(BadRequestException);
+      await expect(controller.activateConfig('invalid')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

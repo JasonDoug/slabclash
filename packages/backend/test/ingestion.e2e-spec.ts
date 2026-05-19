@@ -33,44 +33,52 @@ describe('Ingestion (e2e)', () => {
       .post('/v1/auth/signup')
       .send({ username, email, password })
       .expect(201);
-const loginRes = await request(app.getHttpServer())
-  .post('/v1/auth/login')
-  .send({ email, password })
-  .expect(200);
+    const loginRes = await request(app.getHttpServer())
+      .post('/v1/auth/login')
+      .send({ email, password })
+      .expect(200);
 
-accessToken = loginRes.body.accessToken;
-userId = loginRes.body.user.id;
+    accessToken = loginRes.body.accessToken;
+    userId = loginRes.body.user.id;
 
-// Ensure active config exists
-await prisma.ratingConfig.upsert({
-  where: { version: 'e2e-ingestion' },
-  update: { isActive: true },
-  create: {
-    version: 'e2e-ingestion',
-    isActive: true,
-    weights: { momentum: 0.1, playerStats: 0.9, marketValueCents: 0, rarity: 0, conditionEstimatedScore: 0 },
-    normalizationBounds: { 
-      momentum: { min: 0, max: 10 }, 
-      playerStats: { min: 0, max: 100 },
-      marketValueCents: { min: 0, max: 10000 },
-      rarity: { min: 1, max: 5 },
-      conditionEstimatedScore: { min: 0, max: 10 }
-    },
-  },
-});
-});
+    // Ensure active config exists
+    await prisma.ratingConfig.upsert({
+      where: { version: 'e2e-ingestion' },
+      update: { isActive: true },
+      create: {
+        version: 'e2e-ingestion',
+        isActive: true,
+        weights: {
+          momentum: 0.1,
+          playerStats: 0.9,
+          marketValueCents: 0,
+          rarity: 0,
+          conditionEstimatedScore: 0,
+        },
+        normalizationBounds: {
+          momentum: { min: 0, max: 10 },
+          playerStats: { min: 0, max: 100 },
+          marketValueCents: { min: 0, max: 10000 },
+          rarity: { min: 1, max: 5 },
+          conditionEstimatedScore: { min: 0, max: 10 },
+        },
+      },
+    });
+  });
 
-afterAll(async () => {
-// Cleanup
-if (userId) {
-  await prisma.ratingJob.deleteMany();
-  await prisma.cardIngestionJob.deleteMany({ where: { userId } });
-  await prisma.card.deleteMany({ where: { userId } });
-  await prisma.user.delete({ where: { id: userId } }).catch(() => {});
-}
-await prisma.ratingConfig.deleteMany({ where: { version: 'e2e-ingestion' } });
-await app.close();
-});
+  afterAll(async () => {
+    // Cleanup
+    if (userId) {
+      await prisma.ratingJob.deleteMany();
+      await prisma.cardIngestionJob.deleteMany({ where: { userId } });
+      await prisma.card.deleteMany({ where: { userId } });
+      await prisma.user.delete({ where: { id: userId } }).catch(() => {});
+    }
+    await prisma.ratingConfig.deleteMany({
+      where: { version: 'e2e-ingestion' },
+    });
+    await app.close();
+  });
   it('should generate presigned URLs, allow upload, and process OCR', async () => {
     const frontFileName = 'test-front.png';
 

@@ -69,7 +69,9 @@ describe('MatchmakingService', () => {
   describe('getQueueKey', () => {
     it('should return correct queue key format', () => {
       expect(service.getQueueKey('casual', 2)).toBe('matchmaking:casual:bin:2');
-      expect(service.getQueueKey('ranked', 10)).toBe('matchmaking:ranked:bin:10');
+      expect(service.getQueueKey('ranked', 10)).toBe(
+        'matchmaking:ranked:bin:10',
+      );
     });
   });
 
@@ -94,7 +96,11 @@ describe('MatchmakingService', () => {
       mockRedis.zrank.mockResolvedValue(0);
       mockRedis.setex.mockResolvedValue('OK');
 
-      const result = await service.enqueue('user-1', 'lineup-1', MatchType.casual);
+      const result = await service.enqueue(
+        'user-1',
+        'lineup-1',
+        MatchType.casual,
+      );
 
       expect(result.queued).toBe(true);
       expect(result.queuePosition).toBe(1);
@@ -108,9 +114,9 @@ describe('MatchmakingService', () => {
     it('should throw NotFoundException if lineup not found', async () => {
       mockPrismaService.lineup.findFirst.mockResolvedValue(null);
 
-      await expect(service.enqueue('user-1', 'lineup-1', MatchType.casual)).rejects.toThrow(
-        'Lineup not found or does not belong to user',
-      );
+      await expect(
+        service.enqueue('user-1', 'lineup-1', MatchType.casual),
+      ).rejects.toThrow('Lineup not found or does not belong to user');
     });
 
     it('should throw BadRequestException if user already in queue', async () => {
@@ -125,9 +131,9 @@ describe('MatchmakingService', () => {
         JSON.stringify({ lineupId: 'lineup-1', matchType: MatchType.casual }),
       );
 
-      await expect(service.enqueue('user-1', 'lineup-1', MatchType.casual)).rejects.toThrow(
-        'User already in matchmaking queue',
-      );
+      await expect(
+        service.enqueue('user-1', 'lineup-1', MatchType.casual),
+      ).rejects.toThrow('User already in matchmaking queue');
     });
   });
 

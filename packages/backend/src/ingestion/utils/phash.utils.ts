@@ -6,7 +6,7 @@ export function computeHammingDistance(h1: string, h2: string): number {
   if (h1.length !== h2.length) {
     // If lengths differ, they are considered completely different
     // (e.g., comparing a 16-char imghash with a 64-char SHA256 fallback)
-    return Math.max(h1.length, h2.length) * 4; 
+    return Math.max(h1.length, h2.length) * 4;
   }
 
   let distance = 0;

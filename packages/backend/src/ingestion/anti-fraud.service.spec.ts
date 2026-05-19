@@ -33,7 +33,7 @@ describe('AntiFraudService', () => {
       // Threshold is 10 by default
       const currentPhash = 'ffffffffffffffff';
       const existingCard = { id: 'card-old', phash: 'fffffffffffffffe' }; // distance 1
-      
+
       mockPrismaService.card.findMany.mockResolvedValue([existingCard]);
 
       const result = await service.checkDuplicate(currentPhash, 'user-1');
@@ -45,7 +45,7 @@ describe('AntiFraudService', () => {
     it('should not detect duplicate when distance is above threshold', async () => {
       const currentPhash = 'ffffffffffffffff';
       const existingCard = { id: 'card-old', phash: '0000000000000000' }; // distance 64
-      
+
       mockPrismaService.card.findMany.mockResolvedValue([existingCard]);
 
       const result = await service.checkDuplicate(currentPhash, 'user-1');
@@ -56,14 +56,16 @@ describe('AntiFraudService', () => {
     it('should exclude the current card if cardId is provided', async () => {
       const phash = 'ffffffffffffffff';
       mockPrismaService.card.findMany.mockResolvedValue([]);
-      
+
       const result = await service.checkDuplicate(phash, 'user-1', 'card-1');
-      
-      expect(mockPrismaService.card.findMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: expect.objectContaining({
-          id: { not: 'card-1' }
-        })
-      }));
+
+      expect(mockPrismaService.card.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            id: { not: 'card-1' },
+          }),
+        }),
+      );
     });
   });
 });

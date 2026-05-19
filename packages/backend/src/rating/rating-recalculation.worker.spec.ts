@@ -45,7 +45,12 @@ describe('RatingRecalculationWorker', () => {
   describe('processJobs', () => {
     it('should process pending jobs and update status', async () => {
       const mockJobs = [{ id: 'job-1', cardId: 'card-1' }];
-      const mockCard = { id: 'card-1', powerScore: 500, ratingConfigVersion: 'v1', rarity: 'common' };
+      const mockCard = {
+        id: 'card-1',
+        powerScore: 500,
+        ratingConfigVersion: 'v1',
+        rarity: 'common',
+      };
       const mockRatingResult = { powerScore: 600, ratingConfigVersion: 'v2' };
 
       mockPrismaService.ratingJob.findMany.mockResolvedValue(mockJobs);
@@ -67,7 +72,12 @@ describe('RatingRecalculationWorker', () => {
 
     it('should not write audit log if score and version are unchanged', async () => {
       const mockJobs = [{ id: 'job-1', cardId: 'card-1' }];
-      const mockCard = { id: 'card-1', powerScore: 500, ratingConfigVersion: 'v1', rarity: 'common' };
+      const mockCard = {
+        id: 'card-1',
+        powerScore: 500,
+        ratingConfigVersion: 'v1',
+        rarity: 'common',
+      };
       const mockRatingResult = { powerScore: 500, ratingConfigVersion: 'v1' };
 
       mockPrismaService.ratingJob.findMany.mockResolvedValue(mockJobs);
@@ -86,7 +96,9 @@ describe('RatingRecalculationWorker', () => {
     it('should mark job as failed if processing throws', async () => {
       const mockJobs = [{ id: 'job-1', cardId: 'card-1' }];
       mockPrismaService.ratingJob.findMany.mockResolvedValue(mockJobs);
-      mockPrismaService.card.findUnique.mockRejectedValue(new Error('DB Error'));
+      mockPrismaService.card.findUnique.mockRejectedValue(
+        new Error('DB Error'),
+      );
 
       await worker.processJobs();
 

@@ -41,9 +41,14 @@ export class RedisService {
     return this.redis.get(key);
   }
 
-  async set(key: string, value: string, mode?: 'EX' | 'PX', duration?: number): Promise<string | null> {
+  async set(
+    key: string,
+    value: string,
+    mode?: 'EX' | 'PX',
+    duration?: number,
+  ): Promise<string | null> {
     if (mode && duration !== undefined) {
-      return this.redis.set(key, value, mode as any, duration) as Promise<string | null>;
+      return this.redis.set(key, value, mode as any, duration);
     }
     return this.redis.set(key, value);
   }
@@ -72,7 +77,11 @@ export class RedisService {
     return this.redis.smembers(key);
   }
 
-  async eval(script: string, numKeys: number, ...args: (string | number)[]): Promise<any> {
+  async eval(
+    script: string,
+    numKeys: number,
+    ...args: (string | number)[]
+  ): Promise<any> {
     return this.redis.eval(script, numKeys, ...args);
   }
 }

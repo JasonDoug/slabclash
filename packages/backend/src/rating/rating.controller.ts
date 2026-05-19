@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  Post,
-  HttpCode,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, UseGuards } from '@nestjs/common';
 import { RatingService } from './rating.service';
 import { CalcRatingDto } from './dto/calc-rating.dto';
 import { CalcRatingResponseDto } from './dto/calc-rating-response.dto';

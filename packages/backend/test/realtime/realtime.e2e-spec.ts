@@ -18,7 +18,9 @@ describe('Realtime (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
 
     realtimeService = app.get<InMemoryRealtimeService>(InMemoryRealtimeService);
@@ -27,7 +29,11 @@ describe('Realtime (e2e)', () => {
     const testEmail = `test_${Date.now()}@example.com`;
     const signupRes = await request(app.getHttpServer())
       .post('/v1/auth/signup')
-      .send({ username: `testuser_${Date.now()}`, email: testEmail, password: 'Password123!' })
+      .send({
+        username: `testuser_${Date.now()}`,
+        email: testEmail,
+        password: 'Password123!',
+      })
       .expect(201);
 
     const loginRes = await request(app.getHttpServer())
@@ -74,9 +80,16 @@ describe('Realtime (e2e)', () => {
       const callback = (event: any) => events.push(event);
       realtimeService.subscribe(userId, callback);
 
-      await realtimeService.publishToUser(userId, 'match.found', { matchId: 'm1' });
-      await realtimeService.publishToUser(userId, 'match.start', { matchId: 'm1' });
-      await realtimeService.publishToUser(userId, 'match.result', { matchId: 'm1', winner: 'A' });
+      await realtimeService.publishToUser(userId, 'match.found', {
+        matchId: 'm1',
+      });
+      await realtimeService.publishToUser(userId, 'match.start', {
+        matchId: 'm1',
+      });
+      await realtimeService.publishToUser(userId, 'match.result', {
+        matchId: 'm1',
+        winner: 'A',
+      });
 
       expect(events.length).toBe(3);
       expect(events[0].event).toBe('match.found');

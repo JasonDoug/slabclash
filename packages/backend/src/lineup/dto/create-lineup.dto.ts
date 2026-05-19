@@ -1,4 +1,9 @@
-import { IsString, IsNotEmpty, IsObject, IsNotEmptyObject } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsObject,
+  IsNotEmptyObject,
+} from 'class-validator';
 
 export class CreateLineupDto {
   @IsString()

@@ -1,4 +1,13 @@
-import { Controller, Post, Get, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Delete,
+  Body,
+  Param,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LineupService } from './lineup.service';
@@ -14,13 +23,19 @@ export class LineupController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async createLineup(@Req() req: RequestWithUser, @Body() dto: CreateLineupDto) {
+  async createLineup(
+    @Req() req: RequestWithUser,
+    @Body() dto: CreateLineupDto,
+  ) {
     return this.lineupService.createLineup(req.user.id, dto.name, dto.slots);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':lineupId')
-  async getLineup(@Req() req: RequestWithUser, @Param('lineupId') lineupId: string) {
+  async getLineup(
+    @Req() req: RequestWithUser,
+    @Param('lineupId') lineupId: string,
+  ) {
     return this.lineupService.getLineup(lineupId, req.user.id);
   }
 
@@ -32,7 +47,10 @@ export class LineupController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':lineupId')
-  async deleteLineup(@Req() req: RequestWithUser, @Param('lineupId') lineupId: string) {
+  async deleteLineup(
+    @Req() req: RequestWithUser,
+    @Param('lineupId') lineupId: string,
+  ) {
     return this.lineupService.deleteLineup(lineupId, req.user.id);
   }
 }

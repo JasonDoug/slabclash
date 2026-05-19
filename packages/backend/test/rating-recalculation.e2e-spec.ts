@@ -21,7 +21,9 @@ describe('Rating Recalculation (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, transform: true }),
+    );
     await app.init();
 
     prisma = app.get<PrismaService>(PrismaService);
@@ -31,8 +33,12 @@ describe('Rating Recalculation (e2e)', () => {
     const adminEmail = `recalc_admin_${Date.now()}@test.com`;
     await request(app.getHttpServer())
       .post('/v1/auth/signup')
-      .send({ username: `admin_${Date.now()}`, email: adminEmail, password: 'Password123!' });
-    
+      .send({
+        username: `admin_${Date.now()}`,
+        email: adminEmail,
+        password: 'Password123!',
+      });
+
     const adminUser = await prisma.user.update({
       where: { email: adminEmail },
       data: { role: UserRole.ADMIN },
@@ -51,19 +57,27 @@ describe('Rating Recalculation (e2e)', () => {
       create: {
         version: 'v1',
         isActive: true,
-        weights: { momentum: 0.1, playerStats: 0.9, marketValueCents: 0, rarity: 0, conditionEstimatedScore: 0 },
-        normalizationBounds: { 
-          momentum: { min: 0, max: 10 }, 
+        weights: {
+          momentum: 0.1,
+          playerStats: 0.9,
+          marketValueCents: 0,
+          rarity: 0,
+          conditionEstimatedScore: 0,
+        },
+        normalizationBounds: {
+          momentum: { min: 0, max: 10 },
           playerStats: { min: 0, max: 100 },
           marketValueCents: { min: 0, max: 10000 },
           rarity: { min: 1, max: 5 },
-          conditionEstimatedScore: { min: 0, max: 10 }
+          conditionEstimatedScore: { min: 0, max: 10 },
         },
       },
     });
 
     // 3. Create a card
-    const player = await prisma.player.create({ data: { name: `Player_${Date.now()}` } });
+    const player = await prisma.player.create({
+      data: { name: `Player_${Date.now()}` },
+    });
     const card = await prisma.card.create({
       data: {
         userId: adminId,
@@ -76,7 +90,7 @@ describe('Rating Recalculation (e2e)', () => {
         ratingConfigVersion: 'v1',
         playerStats: 50,
         imageFrontKey: 'key-1',
-      }
+      },
     });
     cardId = card.id;
   });
@@ -98,17 +112,23 @@ describe('Rating Recalculation (e2e)', () => {
       .set('Authorization', `Bearer ${adminToken}`)
       .send({
         version: 'v2-recalc',
-        weights: { momentum: 0.5, playerStats: 0.5, marketValueCents: 0, rarity: 0, conditionEstimatedScore: 0 },
-        normalizationBounds: { 
-          momentum: { min: 0, max: 10 }, 
+        weights: {
+          momentum: 0.5,
+          playerStats: 0.5,
+          marketValueCents: 0,
+          rarity: 0,
+          conditionEstimatedScore: 0,
+        },
+        normalizationBounds: {
+          momentum: { min: 0, max: 10 },
           playerStats: { min: 0, max: 100 },
           marketValueCents: { min: 0, max: 10000 },
           rarity: { min: 1, max: 5 },
-          conditionEstimatedScore: { min: 0, max: 10 }
+          conditionEstimatedScore: { min: 0, max: 10 },
         },
       })
       .expect(201);
-    
+
     const configId = createConfigRes.body.id;
 
     // 2. Activate it (enqueues jobs)
@@ -129,11 +149,11 @@ describe('Rating Recalculation (e2e)', () => {
     // 5. Verify card updated
     const updatedCard = await prisma.card.findUnique({ where: { id: cardId } });
     expect(updatedCard.ratingConfigVersion).toBe('v2-recalc');
-    
+
     // v1: 0.1 * 0 (momentum) + 0.9 * 0.5 (playerStats normalized) = 0.45 -> 450 (if bounds 0-100)
     // Actually the logic in RatingService normalizes weights to sum to 1.
     // v2: 0.5 * 0 + 0.5 * 0.5 = 0.25 -> 250
-    // expect(updatedCard.powerScore).toBe(250); 
+    // expect(updatedCard.powerScore).toBe(250);
     // Let's just check it changed or is defined.
     expect(updatedCard.powerScore).toBeDefined();
     expect(updatedCard.powerScore).not.toBe(500);

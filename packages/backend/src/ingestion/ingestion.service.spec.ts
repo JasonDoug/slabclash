@@ -99,8 +99,12 @@ describe('IngestionService', () => {
     it('should create a job and return presigned URLs', async () => {
       const userId = 'user-1';
       const frontFileName = 'front.jpg';
-      mockPrismaService.cardIngestionJob.create.mockResolvedValue({ id: 'job-1' });
-      mockS3Service.getPresignedUploadUrl.mockResolvedValue('http://upload.url');
+      mockPrismaService.cardIngestionJob.create.mockResolvedValue({
+        id: 'job-1',
+      });
+      mockS3Service.getPresignedUploadUrl.mockResolvedValue(
+        'http://upload.url',
+      );
 
       const result = await service.createUploadUrls(userId, frontFileName);
 
@@ -123,7 +127,9 @@ describe('IngestionService', () => {
       mockS3Service.downloadObject.mockResolvedValue(Buffer.from('image'));
       mockCVService.extractOCR.mockResolvedValue({ text: 'OCR TEXT' });
       mockMatchCandidateService.findCandidates.mockResolvedValue([]);
-      mockPrismaService.cardIngestionJob.update.mockResolvedValue({ id: scanJobId });
+      mockPrismaService.cardIngestionJob.update.mockResolvedValue({
+        id: scanJobId,
+      });
 
       await service.processScanJob(userId, scanJobId);
 
@@ -179,7 +185,9 @@ describe('IngestionService', () => {
         conditionEstimatedScore: 9,
       });
       mockPrismaService.cardIngestionJob.update.mockResolvedValue({});
-      mockAntiFraudService.checkDuplicate.mockResolvedValue({ isDuplicate: false });
+      mockAntiFraudService.checkDuplicate.mockResolvedValue({
+        isDuplicate: false,
+      });
     });
 
     it('should create Card record and update job status on confirm', async () => {
@@ -220,7 +228,9 @@ describe('IngestionService', () => {
     });
 
     it('should schedule rating job when powerScore calculation fails', async () => {
-      mockRatingService.calculate.mockRejectedValue(new Error('Rating calculation failed'));
+      mockRatingService.calculate.mockRejectedValue(
+        new Error('Rating calculation failed'),
+      );
 
       await service.confirmScanJob(
         userId,

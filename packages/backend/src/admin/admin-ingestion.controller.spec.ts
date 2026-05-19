@@ -20,9 +20,7 @@ describe('AdminIngestionController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AdminIngestionController],
-      providers: [
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
+      providers: [{ provide: PrismaService, useValue: mockPrismaService }],
     }).compile();
 
     controller = module.get<AdminIngestionController>(AdminIngestionController);
@@ -45,8 +43,13 @@ describe('AdminIngestionController', () => {
 
   describe('approve', () => {
     it('should update job status to verified', async () => {
-      mockPrismaService.cardIngestionJob.findUnique.mockResolvedValue({ id: 'job-1' });
-      mockPrismaService.cardIngestionJob.update.mockResolvedValue({ id: 'job-1', status: IngestionStatus.verified });
+      mockPrismaService.cardIngestionJob.findUnique.mockResolvedValue({
+        id: 'job-1',
+      });
+      mockPrismaService.cardIngestionJob.update.mockResolvedValue({
+        id: 'job-1',
+        status: IngestionStatus.verified,
+      });
 
       const result = await controller.approve('job-1');
 
@@ -60,14 +63,21 @@ describe('AdminIngestionController', () => {
     it('should throw BadRequestException if job not found', async () => {
       mockPrismaService.cardIngestionJob.findUnique.mockResolvedValue(null);
 
-      await expect(controller.approve('invalid')).rejects.toThrow(BadRequestException);
+      await expect(controller.approve('invalid')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
   describe('reject', () => {
     it('should update job status to flagged', async () => {
-      mockPrismaService.cardIngestionJob.findUnique.mockResolvedValue({ id: 'job-1' });
-      mockPrismaService.cardIngestionJob.update.mockResolvedValue({ id: 'job-1', status: IngestionStatus.flagged });
+      mockPrismaService.cardIngestionJob.findUnique.mockResolvedValue({
+        id: 'job-1',
+      });
+      mockPrismaService.cardIngestionJob.update.mockResolvedValue({
+        id: 'job-1',
+        status: IngestionStatus.flagged,
+      });
 
       const result = await controller.reject('job-1', 'Low quality image');
 

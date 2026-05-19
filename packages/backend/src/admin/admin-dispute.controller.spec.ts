@@ -26,9 +26,7 @@ describe('AdminDisputeController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AdminDisputeController],
-      providers: [
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
+      providers: [{ provide: PrismaService, useValue: mockPrismaService }],
     }).compile();
 
     controller = module.get<AdminDisputeController>(AdminDisputeController);
@@ -47,8 +45,14 @@ describe('AdminDisputeController', () => {
 
   describe('resolveDispute', () => {
     it('should resolve dispute and verify card if resolution is resolved', async () => {
-      mockPrismaService.dispute.findUnique.mockResolvedValue({ id: 'd-1', cardId: 'card-1' });
-      mockPrismaService.dispute.update.mockResolvedValue({ id: 'd-1', status: 'resolved' });
+      mockPrismaService.dispute.findUnique.mockResolvedValue({
+        id: 'd-1',
+        cardId: 'card-1',
+      });
+      mockPrismaService.dispute.update.mockResolvedValue({
+        id: 'd-1',
+        status: 'resolved',
+      });
 
       await controller.resolveDispute('d-1', 'resolved');
 
@@ -63,7 +67,9 @@ describe('AdminDisputeController', () => {
     });
 
     it('should reject resolution if status is invalid', async () => {
-      await expect(controller.resolveDispute('d-1', 'invalid' as any)).rejects.toThrow(BadRequestException);
+      await expect(
+        controller.resolveDispute('d-1', 'invalid' as any),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 });

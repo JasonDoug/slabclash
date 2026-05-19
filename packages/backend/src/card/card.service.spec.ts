@@ -119,7 +119,10 @@ describe('CardService', () => {
       const cardId = 'card-1';
       const mockCard = { id: cardId, userId };
       mockPrisma.card.findUnique.mockResolvedValue(mockCard);
-      const updatedCard = { ...mockCard, conditionReported: ConditionReported.mint };
+      const updatedCard = {
+        ...mockCard,
+        conditionReported: ConditionReported.mint,
+      };
       mockPrisma.card.update.mockResolvedValue(updatedCard);
 
       await service.updateCardMetadata(userId, cardId, {

@@ -5,7 +5,10 @@ import { computeHammingDistance } from './utils/phash.utils';
 @Injectable()
 export class AntiFraudService {
   private readonly logger = new Logger(AntiFraudService.name);
-  private readonly THRESHOLD = parseInt(process.env.PHASH_THRESHOLD || '10', 10);
+  private readonly THRESHOLD = parseInt(
+    process.env.PHASH_THRESHOLD || '10',
+    10,
+  );
 
   constructor(private prisma: PrismaService) {}
 
@@ -13,7 +16,11 @@ export class AntiFraudService {
    * Checks if a card with a similar pHash already exists.
    * Returns information about the duplicate if found.
    */
-  async checkDuplicate(phash: string, currentUserId: string, excludeCardId?: string): Promise<{ isDuplicate: boolean; similarCardId?: string }> {
+  async checkDuplicate(
+    phash: string,
+    currentUserId: string,
+    excludeCardId?: string,
+  ): Promise<{ isDuplicate: boolean; similarCardId?: string }> {
     if (!phash) return { isDuplicate: false };
 
     // Fetch recent cards to check for similarity
@@ -35,7 +42,7 @@ export class AntiFraudService {
         const distance = computeHammingDistance(phash, card.phash);
         if (distance <= this.THRESHOLD) {
           this.logger.warn(
-            `Duplicate detected for user ${currentUserId}: new phash ${phash} is similar to existing card ${card.id} (phash: ${card.phash}, distance: ${distance})`
+            `Duplicate detected for user ${currentUserId}: new phash ${phash} is similar to existing card ${card.id} (phash: ${card.phash}, distance: ${distance})`,
           );
           return { isDuplicate: true, similarCardId: card.id };
         }

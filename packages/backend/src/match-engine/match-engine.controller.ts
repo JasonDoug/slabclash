@@ -1,4 +1,11 @@
-import { Controller, Post, Body, UseGuards, NotFoundException, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  NotFoundException,
+  Req,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { MatchEngineService } from './match-engine.service';
 import { ResolveMatchDto } from './dto/resolve-match.dto';
@@ -14,7 +21,10 @@ export class MatchEngineController {
   ) {}
 
   @Post('resolve')
-  async resolve(@Body() dto: ResolveMatchDto, @Req() req: any): Promise<ResolutionResult> {
+  async resolve(
+    @Body() dto: ResolveMatchDto,
+    @Req() req: any,
+  ): Promise<ResolutionResult> {
     dto.validate();
 
     // If using matchId, verify ownership

@@ -1,4 +1,10 @@
-import { IsOptional, IsString, ValidateNested, validateSync, ValidationError } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  ValidateNested,
+  validateSync,
+  ValidationError,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { LineupInputDto } from './lineup-input.dto';
 
@@ -31,7 +37,9 @@ export class ResolveMatchDto {
     if (hasMatchId === hasLineups) {
       const err = new ValidationError();
       err.property = 'matchId';
-      err.constraints = { validInput: 'Provide either matchId OR lineupA + lineupB + matchSeed' };
+      err.constraints = {
+        validInput: 'Provide either matchId OR lineupA + lineupB + matchSeed',
+      };
       return [err];
     }
     return [];

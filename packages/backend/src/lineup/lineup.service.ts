@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 
@@ -20,7 +24,9 @@ export class LineupService {
     // Check for duplicate card IDs in slots
     const uniqueCardIds = [...new Set(cardIds)];
     if (uniqueCardIds.length !== cardIds.length) {
-      throw new BadRequestException('Duplicate cards are not allowed in lineup slots');
+      throw new BadRequestException(
+        'Duplicate cards are not allowed in lineup slots',
+      );
     }
 
     const cards = await this.prisma.card.findMany({
@@ -34,23 +40,23 @@ export class LineupService {
       throw new BadRequestException('Some cards do not belong to the user');
     }
 
-    const aggregatePowerScore = cards.reduce((sum, card) => sum + (card.powerScore || 0), 0);
-
-    const rarityCounts = cards.reduce(
-      (acc, card) => {
-        acc[card.rarity] = (acc[card.rarity] || 0) + 1;
-        return acc;
-      },
-      {} as RarityCounts,
+    const aggregatePowerScore = cards.reduce(
+      (sum, card) => sum + (card.powerScore || 0),
+      0,
     );
+
+    const rarityCounts = cards.reduce((acc, card) => {
+      acc[card.rarity] = (acc[card.rarity] || 0) + 1;
+      return acc;
+    }, {} as RarityCounts);
 
     return this.prisma.lineup.create({
       data: {
         userId,
         name,
-        slots: slots as Prisma.InputJsonValue,
+        slots: slots,
         aggregatePowerScore,
-        rarityCounts: rarityCounts as Prisma.InputJsonValue,
+        rarityCounts: rarityCounts,
       },
     });
   }
@@ -91,7 +97,9 @@ export class LineupService {
     });
 
     if (existingMatch) {
-      throw new BadRequestException('Cannot delete lineup that is part of an existing match');
+      throw new BadRequestException(
+        'Cannot delete lineup that is part of an existing match',
+      );
     }
 
     try {
@@ -99,8 +107,13 @@ export class LineupService {
         where: { id: lineupId },
       });
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
-        throw new BadRequestException('Cannot delete lineup that is part of an existing match');
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new BadRequestException(
+          'Cannot delete lineup that is part of an existing match',
+        );
       }
       throw error;
     }

@@ -155,7 +155,7 @@ export class CardService {
         const ratingDto = {
           card: {
             id: card.id,
-            playerStats: card.playerStats as number,
+            playerStats: card.playerStats,
             marketValueCents: card.marketValueCents ?? undefined,
             rarity: card.rarity,
             conditionEstimatedScore: card.conditionEstimatedScore ?? undefined,
@@ -181,7 +181,6 @@ export class CardService {
       powerBreakdown,
     };
   }
-
 
   async updateCardMetadata(
     userId: string,

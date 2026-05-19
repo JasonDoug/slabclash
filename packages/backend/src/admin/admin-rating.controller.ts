@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, UseGuards, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AdminGuard } from '../auth/admin.guard';
 import { PrismaService } from '../prisma/prisma.service';
@@ -62,7 +71,7 @@ export class AdminRatingController {
     });
 
     if (allCards.length > 0) {
-      const jobData = allCards.map(card => ({
+      const jobData = allCards.map((card) => ({
         cardId: card.id,
         status: 'pending',
       }));
@@ -71,11 +80,13 @@ export class AdminRatingController {
         data: jobData,
         skipDuplicates: true, // Don't enqueue if already pending? Actually, let's just enqueue.
       });
-      
-      this.logger.log(`Enqueued ${allCards.length} recalculation jobs for config ${config.version}`);
+
+      this.logger.log(
+        `Enqueued ${allCards.length} recalculation jobs for config ${config.version}`,
+      );
     }
 
-    return { 
+    return {
       activated: config.version,
       enqueuedJobs: allCards.length,
     };
