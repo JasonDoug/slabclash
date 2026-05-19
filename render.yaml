@@ -18,7 +18,7 @@ services:
           property: connectionString
       - key: REDIS_URL
         fromService:
-          type: redis
+          type: keyvalue
           name: slabclash-cache
           property: connectionString
       # Add your secrets to the Render Dashboard manually:
@@ -28,15 +28,15 @@ services:
       # - S3_BUCKET_NAME
       # - AWS_REGION
 
-# 2. Managed PostgreSQL
+  # 2. Managed Redis (Key-Value)
+  - type: keyvalue
+    name: slabclash-cache
+    plan: free # Can be 'free' for MVP
+    region: ohio
+    ipAllowList: [] # Only allow internal connections
+
+# 3. Managed PostgreSQL
 databases:
   - name: slabclash-db
     plan: free # Can be 'free' for MVP
     region: ohio
-
-# 3. Managed Redis
-redis:
-  - name: slabclash-cache
-    plan: free # Can be 'free' for MVP
-    region: ohio
-    ipAllowList: [] # Only allow internal connections
