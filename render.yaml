@@ -1,0 +1,42 @@
+services:
+  # 1. The Backend API (Runs workers internally for MVP)
+  - type: web
+    name: slabclash-api
+    env: node
+    plan: starter # Web services need to be 'starter' or higher to stay on 24/7 for workers
+    region: ohio # Change to your preferred region
+    buildCommand: yarn install && yarn workspace backend build:prod
+    startCommand: yarn workspace backend start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: slabclash-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: slabclash-cache
+          property: connectionString
+      # Add your secrets to the Render Dashboard manually:
+      # - JWT_SECRET
+      # - AWS_ACCESS_KEY_ID
+      # - AWS_SECRET_ACCESS_KEY
+      # - S3_BUCKET_NAME
+      # - AWS_REGION
+
+# 2. Managed PostgreSQL
+databases:
+  - name: slabclash-db
+    plan: free # Can be 'free' for MVP
+    region: ohio
+
+# 3. Managed Redis
+redis:
+  - name: slabclash-cache
+    plan: free # Can be 'free' for MVP
+    region: ohio
+    ipAllowList: [] # Only allow internal connections

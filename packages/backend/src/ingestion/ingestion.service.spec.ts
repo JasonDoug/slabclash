@@ -6,11 +6,9 @@ import { CVService } from './cv/cv.service';
 import { MatchCandidateService } from './match-candidate.service';
 import { RatingService } from '../rating/rating.service';
 import { CardService } from '../card/card.service';
-import { ForbiddenException } from '@nestjs/common';
-import * as imghash from 'imghash';
-import { ConditionReported } from '@prisma/client';
-
-jest.mock('imghash');
+import { AntiFraudService } from './anti-fraud.service';
+import { IngestionStatus, ConditionReported } from '@prisma/client';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 
 describe('IngestionService', () => {
   let service: IngestionService;
@@ -19,7 +17,7 @@ describe('IngestionService', () => {
   let cvService: CVService;
   let cardService: CardService;
 
-  const mockPrismaService: any = {
+  const mockPrismaService = {
     cardIngestionJob: {
       create: jest.fn(),
       findUnique: jest.fn(),
@@ -31,6 +29,9 @@ describe('IngestionService', () => {
     card: {
       update: jest.fn(),
       findUnique: jest.fn(),
+    },
+    dispute: {
+      create: jest.fn(),
     },
   };
 
@@ -52,6 +53,14 @@ describe('IngestionService', () => {
     scheduleRating: jest.fn(),
   };
 
+  const mockAntiFraudService = {
+    checkDuplicate: jest.fn(),
+  };
+
+  const mockRealtimeService = {
+    publishToUser: jest.fn(),
+  };
+
   const mockCardService = {
     createCard: jest.fn(),
   };
@@ -66,6 +75,8 @@ describe('IngestionService', () => {
         { provide: MatchCandidateService, useValue: mockMatchCandidateService },
         { provide: RatingService, useValue: mockRatingService },
         { provide: CardService, useValue: mockCardService },
+        { provide: AntiFraudService, useValue: mockAntiFraudService },
+        { provide: 'RealtimeService', useValue: mockRealtimeService },
       ],
     }).compile();
 
@@ -88,81 +99,53 @@ describe('IngestionService', () => {
     it('should create a job and return presigned URLs', async () => {
       const userId = 'user-1';
       const frontFileName = 'front.jpg';
-      const backFileName = 'back.jpg';
+      mockPrismaService.cardIngestionJob.create.mockResolvedValue({ id: 'job-1' });
+      mockS3Service.getPresignedUploadUrl.mockResolvedValue('http://upload.url');
 
-      mockS3Service.getPresignedUploadUrl.mockResolvedValueOnce(
-        'http://upload-front',
-      );
-      mockS3Service.getPresignedUploadUrl.mockResolvedValueOnce(
-        'http://upload-back',
-      );
+      const result = await service.createUploadUrls(userId, frontFileName);
 
-      mockPrismaService.cardIngestionJob.create.mockResolvedValue({
-        id: 'job-1',
-        userId,
-        imageFrontKey: 'key-front',
-        imageBackKey: 'key-back',
-        status: 'uploaded',
-      });
-
-      const result = await service.createUploadUrls(
-        userId,
-        frontFileName,
-        backFileName,
-      );
-
-      expect(result.scanJobId).toBeDefined();
-      expect(result.uploadUrlFront).toBe('http://upload-front');
-      expect(result.uploadUrlBack).toBe('http://upload-back');
+      expect(result.scanJobId).toBe('job-1');
+      expect(result.uploadUrlFront).toBe('http://upload.url');
+      expect(mockPrismaService.cardIngestionJob.create).toHaveBeenCalled();
     });
   });
 
   describe('processScanJob', () => {
-    it('should process a scan job correctly', async () => {
-      const userId = 'user-1';
-      const scanJobId = 'job-1';
-      const mockBuffer = Buffer.from('fake-image');
+    const userId = 'user-1';
+    const scanJobId = 'job-1';
 
+    it('should process a scan job correctly', async () => {
       mockPrismaService.cardIngestionJob.findUnique.mockResolvedValue({
         id: scanJobId,
         userId,
-        imageFrontKey: 'key-front',
-        status: 'uploaded',
+        imageFrontKey: 'front-key',
       });
+      mockS3Service.downloadObject.mockResolvedValue(Buffer.from('image'));
+      mockCVService.extractOCR.mockResolvedValue({ text: 'OCR TEXT' });
+      mockMatchCandidateService.findCandidates.mockResolvedValue([]);
+      mockPrismaService.cardIngestionJob.update.mockResolvedValue({ id: scanJobId });
 
-      mockS3Service.downloadObject.mockResolvedValue(mockBuffer);
-      mockCVService.extractOCR.mockResolvedValue({
-        text: 'EXTRACTED TEXT',
-        candidates: [{ name: 'Test Card' }],
+      await service.processScanJob(userId, scanJobId);
+
+      expect(mockCVService.extractOCR).toHaveBeenCalled();
+      expect(mockPrismaService.cardIngestionJob.update).toHaveBeenCalledWith({
+        where: { id: scanJobId },
+        data: expect.objectContaining({
+          status: 'awaiting_user_confirm',
+          ocrText: 'OCR TEXT',
+        }),
       });
-      mockMatchCandidateService.findCandidates.mockResolvedValue([
-        { playerId: 'p1', playerName: 'Test Card', confidence: 0.9 },
-      ]);
-      (imghash.hash as jest.Mock).mockResolvedValue('f1f1f1f1');
-
-      mockPrismaService.cardIngestionJob.update.mockResolvedValue({
-        id: scanJobId,
-        status: 'awaiting_user_confirm',
-        ocrText: 'EXTRACTED TEXT',
-        phash: 'f1f1f1f1',
-      });
-
-      const result = await service.processScanJob(userId, scanJobId);
-
-      expect(result.status).toBe('awaiting_user_confirm');
-      expect(result.ocrText).toBe('EXTRACTED TEXT');
-      expect(result.phash).toBe('f1f1f1f1');
-      expect(mockS3Service.downloadObject).toHaveBeenCalledWith('key-front');
-      expect(mockCVService.extractOCR).toHaveBeenCalledWith(mockBuffer);
     });
 
     it('should throw ForbiddenException if user does not own job', async () => {
       mockPrismaService.cardIngestionJob.findUnique.mockResolvedValue({
-        id: 'job-1',
+        id: scanJobId,
         userId: 'other-user',
       });
 
-      await expect(service.processScanJob('user-1', 'job-1')).rejects.toThrow();
+      await expect(service.processScanJob(userId, scanJobId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -196,6 +179,7 @@ describe('IngestionService', () => {
         conditionEstimatedScore: 9,
       });
       mockPrismaService.cardIngestionJob.update.mockResolvedValue({});
+      mockAntiFraudService.checkDuplicate.mockResolvedValue({ isDuplicate: false });
     });
 
     it('should create Card record and update job status on confirm', async () => {

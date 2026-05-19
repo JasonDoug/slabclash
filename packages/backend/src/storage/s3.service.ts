@@ -16,13 +16,14 @@ export class S3Service {
   private readonly logger = new Logger(S3Service.name);
 
   constructor(private configService: ConfigService) {
-    const region = this.configService.get<string>('AWS_REGION');
+    const region = this.configService.get<string>('AWS_REGION') || 'us-east-1';
     const endpoint = this.configService.get<string>('S3_ENDPOINT');
-    const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>(
-      'AWS_SECRET_ACCESS_KEY',
-    );
-    this.bucketName = this.configService.get<string>('S3_BUCKET_NAME');
+    const accessKeyId =
+      this.configService.get<string>('AWS_ACCESS_KEY_ID') || '';
+    const secretAccessKey =
+      this.configService.get<string>('AWS_SECRET_ACCESS_KEY') || '';
+    this.bucketName =
+      this.configService.get<string>('S3_BUCKET_NAME') || 'slabclash';
 
     this.s3Client = new S3Client({
       region,

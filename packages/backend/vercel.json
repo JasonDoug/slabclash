@@ -1,0 +1,8 @@
+{
+  "version": 2,
+  "buildCommand": "npx prisma generate && nest build",
+  "framework": "nestjs",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/src/main.ts" }
+  ]
+}

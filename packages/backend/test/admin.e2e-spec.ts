@@ -88,7 +88,13 @@ describe('Admin (e2e)', () => {
         .send({
           version: 'v2-test',
           weights: { momentum: 0.1, playerStats: 0.9 },
-          normalizationBounds: { momentum: [0, 10], playerStats: [0, 100] },
+          normalizationBounds: { 
+            momentum: { min: 0, max: 10 }, 
+            playerStats: { min: 0, max: 100 },
+            marketValueCents: { min: 0, max: 10000 },
+            rarity: { min: 1, max: 5 },
+            conditionEstimatedScore: { min: 0, max: 10 }
+          },
         })
         .expect(201);
       

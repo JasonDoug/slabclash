@@ -12,7 +12,7 @@ export class AdminIngestionController {
 
   @Get('queue')
   async getQueue(@Query() query: AdminIngestionQueryDto) {
-    const { page, limit, status, userId } = query;
+    const { page = 1, limit = 20, status, userId } = query;
     const skip = (page - 1) * limit;
 
     const where = {

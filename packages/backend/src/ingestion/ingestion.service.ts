@@ -16,7 +16,7 @@ import { MatchCandidateService } from './match-candidate.service';
 import { ConditionReported, IngestionStatus } from '@prisma/client';
 import { CardService } from '../card/card.service';
 import { AntiFraudService } from './anti-fraud.service';
-import { RealtimeService } from '../realtime/realtime.interface';
+import type { RealtimeService } from '../realtime/realtime.interface';
 
 @Injectable()
 export class IngestionService {

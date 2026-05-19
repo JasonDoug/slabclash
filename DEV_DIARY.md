@@ -112,5 +112,27 @@ Implemented Admin-only endpoints for managing the card ingestion queue and ratin
 
 ### Next Steps
 - Prompt 14: Anti-fraud: Duplication and Phash checks
+- Prompt 15: Batch Jobs: Rating Recalculation Worker
 
+## Prompt 14 — Anti-fraud: pHash Detection (2026-05-16)
 
+### Summary
+Implemented image-similarity detection via pHash to prevent duplicate card uploads. Added a user-facing flagging system.
+
+### Changes Made
+- `packages/backend/src/ingestion/anti-fraud.service.ts` — Implemented Hamming distance and duplicate checking.
+- `packages/backend/src/admin/admin-dispute.controller.ts` — Admin endpoints to resolve flagged cards.
+- `packages/backend/test/anti-fraud.e2e-spec.ts` — E2E test for duplicate detection.
+
+## Prompt 15 — Batch Jobs: Recalculation Worker (2026-05-16)
+
+### Summary
+Implemented a background worker that processes batch rating recalculation jobs. Added AuditLog model for change tracking.
+
+### Changes Made
+- `packages/backend/prisma/schema.prisma` — Added `AuditLog` model.
+- `packages/backend/src/rating/rating-recalculation.worker.ts` — Implemented the worker process.
+- `packages/backend/test/rating-recalculation.e2e-spec.ts` — E2E test for batch recalculation.
+
+### Next Steps
+- Prompt 16: CI & Local E2E Smoke Tests

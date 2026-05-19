@@ -180,3 +180,4 @@ Implementation Status
 - [x] Sprint 5: Lineups and Deck Building.
 - [x] Sprint 6: Matchmaking and Match Engine.
 - [x] Sprint 7: Anti-fraud and Admin Dashboard.
+- [x] Sprint 8: Batch Jobs and Rating Recalculation.
