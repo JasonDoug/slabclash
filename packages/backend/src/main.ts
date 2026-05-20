@@ -7,7 +7,11 @@ async function bootstrap() {
 
   const origins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
-    : ['http://localhost:3000', 'http://localhost:19006']; // default for dev
+    : [
+        'http://localhost:3000',
+        'http://localhost:19006',
+        'https://v0-slabclash-web-frontend.vercel.app',
+      ]; // default for dev and current beta deployment
 
   app.enableCors({
     origin: origins,

@@ -42,7 +42,13 @@ export class AuthService {
 
     // Strip password
     const { passwordHash: _, ...safeUser } = user;
-    return safeUser;
+    const payload = { userId: user.id, username: user.username };
+    const accessToken = this.jwtService.sign(payload);
+
+    return {
+      accessToken,
+      user: safeUser,
+    };
   }
 
   async login(dto: LoginDto) {
