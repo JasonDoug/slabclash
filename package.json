@@ -6,6 +6,7 @@
   ],
   "scripts": {
     "dev:backend": "yarn workspace backend start:dev",
+    "build:frontend": "yarn workspace @slabclash/frontend build",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "prisma:migrate:dev": "yarn workspace backend prisma migrate dev",
