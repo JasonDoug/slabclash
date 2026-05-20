@@ -2,7 +2,10 @@
   "name": "slabclash",
   "private": true,
   "workspaces": [
-    "packages/*"
+    "backend",
+    "frontend",
+    "mobile",
+    "shared"
   ],
   "scripts": {
     "dev:backend": "yarn workspace backend start:dev",

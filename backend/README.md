@@ -27,14 +27,14 @@ yarn prisma:migrate:dev
 # development
 yarn dev:backend
 
-# watch mode (from within packages/backend)
+# watch mode (from within backend)
 yarn start:dev
 ```
 
 ## Testing
 
 ```bash
-# unit tests (from within packages/backend)
+# unit tests (from within backend)
 yarn test
 
 # e2e tests

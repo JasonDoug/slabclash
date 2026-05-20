@@ -12,7 +12,7 @@
 - **Authentication:** JWT-based authentication with Passport and bcrypt
 
 ### Architecture
-The project follows a monorepo structure under the `packages/` directory:
+The project follows a monorepo structure at the project root:
 - `backend/`: NestJS server handling business logic, authentication, and database interactions. Core modules include:
     - `AuthModule`: JWT-based identity management.
     - `IngestionModule`: Card scanning, OCR, pHash, and metadata confirmation.
@@ -65,10 +65,10 @@ The system is designed with a clear separation of concerns for scanning/ingestio
 
 ### Testing Practices
 - **Unit Testing:** Use Jest for unit tests. Files should follow the `*.spec.ts` naming convention.
-- **E2E Testing:** Located in `packages/backend/test/` using Supertest and Jest.
+- **E2E Testing:** Located in `backend/test/` using Supertest and Jest.
 - **Verification:** Always run `yarn test` and `yarn lint` before pushing changes.
 
 ### Contribution Workflow
 1.  **Reference Specs:** Consult `ONE_PAGER.md` for product vision and `DEV_SPEC.md` for technical requirements before implementing new features.
-2.  **Environment Variables:** Copy `.env.example` to `.env` at the root and in `packages/backend/` and fill in necessary secrets.
+2.  **Environment Variables:** Copy `.env.example` to `.env` at the root and in `backend/` and fill in necessary secrets.
 3.  **Surgical Updates:** When modifying existing logic, ensure tests are updated or added to cover the changes.

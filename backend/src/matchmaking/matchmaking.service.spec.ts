@@ -68,8 +68,8 @@ describe('MatchmakingService', () => {
 
   describe('getQueueKey', () => {
     it('should return correct queue key format', () => {
-      expect(service.getQueueKey('casual', 2)).toBe('matchmaking:casual:bin:2');
-      expect(service.getQueueKey('ranked', 10)).toBe(
+      expect(service.getQueueKey(MatchType.casual, 2)).toBe('matchmaking:casual:bin:2');
+      expect(service.getQueueKey(MatchType.ranked, 10)).toBe(
         'matchmaking:ranked:bin:10',
       );
     });

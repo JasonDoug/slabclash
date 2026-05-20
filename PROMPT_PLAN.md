@@ -51,9 +51,9 @@ We will build the backend and mobile app in a monorepo. Start with a minimal, lo
 
 Goal:
 Create a repository skeleton with:
-- /packages/backend (NestJS app)
-- /packages/mobile (React Native app skeleton — Expo or bare RN; create minimal stub)
-- /packages/shared (shared types)
+- /backend (NestJS app)
+- /mobile (React Native app skeleton — Expo or bare RN; create minimal stub)
+- /shared (shared types)
 - package.json workspaces
 - Docker Compose with Postgres (latest supported) and Redis
 - Prisma init in backend with schema for User and migration scripts
@@ -84,7 +84,7 @@ Notes:
 
 Files to create/modify:
 - package.json (root)
-- packages/backend/{src, test, prisma schema, nest config}
+- backend/{src, test, prisma schema, nest config}
 - docker-compose.yml
 - .github/workflows/ci.yml (basic lint + tests stub)
 
@@ -92,7 +92,7 @@ Provide instructions for how to run and verify locally.
 ```
 
 Todo checklist:
-- [ ] Create monorepo skeleton with packages/backend, packages/mobile, packages/shared
+- [ ] Create monorepo skeleton with backend, mobile, shared
 - [ ] Add Docker Compose for Postgres + Redis
 - [ ] Initialize Prisma schema (User) and migrations
 - [ ] Implement NestJS health endpoint + unit/integration tests

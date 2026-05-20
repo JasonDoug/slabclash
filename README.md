@@ -4,9 +4,9 @@ A sports trading card battle app built with NestJS, React Native, and Prisma.
 
 ## Project Structure
 
-- `packages/backend`: NestJS application with Prisma.
-- `packages/mobile`: React Native mobile application stub.
-- `packages/shared`: Shared TypeScript types and utilities.
+- `backend`: NestJS application with Prisma.
+- `mobile`: React Native mobile application stub.
+- `shared`: Shared TypeScript types and utilities.
 
 ## Prerequisites
 
@@ -83,7 +83,7 @@ All endpoints except Auth require a `Bearer <JWT>` token in the `Authorization` 
 
 ## Data Models
 
-Key Prisma models (see `packages/backend/prisma/schema.prisma`):
+Key Prisma models (see `backend/prisma/schema.prisma`):
 - **User**: id, username, email, passwordHash, reputationScore, inAppCurrencyBalance
 - **Card**: id, userId, playerId, year, setName, variant, serialNumber, conditionReported, conditionEstimatedScore, playerStats, marketValueCents, rarity, powerScore, ratingConfigVersion, imageFrontKey, imageBackKey, phash, ingestionStatus
 - **Player**: id, name (referenced by Card)

@@ -7,19 +7,19 @@ Implemented a deterministic rating engine that computes a power score (0-1000) b
 
 ### Changes Made
 
-#### Prisma Schema (`packages/backend/prisma/schema.prisma`)
+#### Prisma Schema (`backend/prisma/schema.prisma`)
 - Added `RatingConfig` model with fields: id, version, isActive, weights, normalizationBounds.
 - Updated `Card` model to include `playerStats`, `marketValueCents`, and `ratingConfigVersion`.
 
 #### New Files Created
-- `packages/backend/src/rating/dto/calc-rating.dto.ts` — DTO for rating calculation requests.
-- `packages/backend/src/rating/dto/calc-rating-response.dto.ts` — DTO for rating calculation responses.
-- `packages/backend/src/rating/rating.controller.ts` — POST /v1/rating/calc endpoint for manual/preview calculations.
+- `backend/src/rating/dto/calc-rating.dto.ts` — DTO for rating calculation requests.
+- `backend/src/rating/dto/calc-rating-response.dto.ts` — DTO for rating calculation responses.
+- `backend/src/rating/rating.controller.ts` — POST /v1/rating/calc endpoint for manual/preview calculations.
 
 #### Modified Files
-- `packages/backend/src/rating/rating.service.ts` — Implemented core `calculate()` logic using `RatingConfig`.
-- `packages/backend/src/rating/rating.service.spec.ts` — Added tests for deterministic results and fallback logic.
-- `packages/backend/src/ingestion/ingestion.service.ts` — Integrated `RatingService.calculate()` into the `confirmScanJob` flow.
+- `backend/src/rating/rating.service.ts` — Implemented core `calculate()` logic using `RatingConfig`.
+- `backend/src/rating/rating.service.spec.ts` — Added tests for deterministic results and fallback logic.
+- `backend/src/ingestion/ingestion.service.ts` — Integrated `RatingService.calculate()` into the `confirmScanJob` flow.
 
 ### Key Implementation Details
 
@@ -55,8 +55,8 @@ Each factor is normalized to a 0.0 - 1.0 range using `min` and `max` bounds defi
 Implemented CRUD endpoints for user card collections, including filtering and pagination.
 
 ### Changes Made
-- `packages/backend/src/card/card.controller.ts` — Added GET /v1/users/:userId/cards and GET /v1/cards/:cardId.
-- `packages/backend/src/card/card.service.ts` — Implemented list and detail logic with ownership checks.
+- `backend/src/card/card.controller.ts` — Added GET /v1/users/:userId/cards and GET /v1/cards/:cardId.
+- `backend/src/card/card.service.ts` — Implemented list and detail logic with ownership checks.
 
 ## Prompt 08 — Lineup Creation & Validation (2026-05-02)
 
@@ -64,8 +64,8 @@ Implemented CRUD endpoints for user card collections, including filtering and pa
 Implemented lineup management allowing users to create 9-position rosters from their collected cards.
 
 ### Changes Made
-- `packages/backend/src/lineup/lineup.controller.ts` — Added CRUD for lineups.
-- `packages/backend/src/lineup/lineup.service.ts` — Added validation for card ownership and aggregate power score calculation.
+- `backend/src/lineup/lineup.controller.ts` — Added CRUD for lineups.
+- `backend/src/lineup/lineup.service.ts` — Added validation for card ownership and aggregate power score calculation.
 
 ## Prompt 09 — Matchmaking Queue (2026-05-03)
 
@@ -73,8 +73,8 @@ Implemented lineup management allowing users to create 9-position rosters from t
 Implemented a Redis-backed matchmaking system that buckets players by power score.
 
 ### Changes Made
-- `packages/backend/src/redis/redis.service.ts` — Created Redis wrapper.
-- `packages/backend/src/matchmaking/matchmaking.service.ts` — Implemented enqueue/status logic and background worker.
+- `backend/src/redis/redis.service.ts` — Created Redis wrapper.
+- `backend/src/matchmaking/matchmaking.service.ts` — Implemented enqueue/status logic and background worker.
 
 ## Prompt 10 — Match Engine (2026-05-04)
 
@@ -82,8 +82,8 @@ Implemented a Redis-backed matchmaking system that buckets players by power scor
 Implemented a deterministic match resolution engine that compares lineups position-by-position.
 
 ### Changes Made
-- `packages/backend/src/match-engine/match-engine.service.ts` — Core resolution logic with tiebreakers and seeded RNG.
-- `packages/backend/test/match-engine/match-engine.e2e-spec.ts` — Comprehensive e2e tests for match resolution.
+- `backend/src/match-engine/match-engine.service.ts` — Core resolution logic with tiebreakers and seeded RNG.
+- `backend/test/match-engine/match-engine.e2e-spec.ts` — Comprehensive e2e tests for match resolution.
 
 ## Prompt 11 — Realtime Notifications (2026-05-05)
 
@@ -91,8 +91,8 @@ Implemented a deterministic match resolution engine that compares lineups positi
 Implemented a Server-Sent Events (SSE) notification system to inform users of matchmaking results.
 
 ### Changes Made
-- `packages/backend/src/realtime/realtime.controller.ts` — Added /v1/notifications/stream endpoint.
-- `packages/backend/src/realtime/in-memory-realtime.service.ts` — Implemented in-memory event publishing and subscription.
+- `backend/src/realtime/realtime.controller.ts` — Added /v1/notifications/stream endpoint.
+- `backend/src/realtime/in-memory-realtime.service.ts` — Implemented in-memory event publishing and subscription.
 
 ### Next Steps
 - Prompt 12: Mobile (React Native) minimal flows: Camera, Upload, and Match UI.
@@ -104,11 +104,11 @@ Implemented a Server-Sent Events (SSE) notification system to inform users of ma
 Implemented Admin-only endpoints for managing the card ingestion queue and rating engine configurations. Added RBAC with an Admin role.
 
 ### Changes Made
-- `packages/backend/prisma/schema.prisma` — Added `UserRole` enum and `role` field to `User`.
-- `packages/backend/src/auth/admin.guard.ts` — Created RBAC guard for Admin access.
-- `packages/backend/src/admin/` — Created new module with controllers for ingestion queue and rating configs.
-- `packages/backend/src/admin/admin-rating.controller.ts` — Implemented config activation that enqueues batch recalculations.
-- `packages/backend/test/admin.e2e-spec.ts` — Added E2E tests for Admin RBAC and functionality.
+- `backend/prisma/schema.prisma` — Added `UserRole` enum and `role` field to `User`.
+- `backend/src/auth/admin.guard.ts` — Created RBAC guard for Admin access.
+- `backend/src/admin/` — Created new module with controllers for ingestion queue and rating configs.
+- `backend/src/admin/admin-rating.controller.ts` — Implemented config activation that enqueues batch recalculations.
+- `backend/test/admin.e2e-spec.ts` — Added E2E tests for Admin RBAC and functionality.
 
 ### Next Steps
 - Prompt 14: Anti-fraud: Duplication and Phash checks
@@ -120,9 +120,9 @@ Implemented Admin-only endpoints for managing the card ingestion queue and ratin
 Implemented image-similarity detection via pHash to prevent duplicate card uploads. Added a user-facing flagging system.
 
 ### Changes Made
-- `packages/backend/src/ingestion/anti-fraud.service.ts` — Implemented Hamming distance and duplicate checking.
-- `packages/backend/src/admin/admin-dispute.controller.ts` — Admin endpoints to resolve flagged cards.
-- `packages/backend/test/anti-fraud.e2e-spec.ts` — E2E test for duplicate detection.
+- `backend/src/ingestion/anti-fraud.service.ts` — Implemented Hamming distance and duplicate checking.
+- `backend/src/admin/admin-dispute.controller.ts` — Admin endpoints to resolve flagged cards.
+- `backend/test/anti-fraud.e2e-spec.ts` — E2E test for duplicate detection.
 
 ## Prompt 15 — Batch Jobs: Recalculation Worker (2026-05-16)
 
@@ -130,9 +130,9 @@ Implemented image-similarity detection via pHash to prevent duplicate card uploa
 Implemented a background worker that processes batch rating recalculation jobs. Added AuditLog model for change tracking.
 
 ### Changes Made
-- `packages/backend/prisma/schema.prisma` — Added `AuditLog` model.
-- `packages/backend/src/rating/rating-recalculation.worker.ts` — Implemented the worker process.
-- `packages/backend/test/rating-recalculation.e2e-spec.ts` — E2E test for batch recalculation.
+- `backend/prisma/schema.prisma` — Added `AuditLog` model.
+- `backend/src/rating/rating-recalculation.worker.ts` — Implemented the worker process.
+- `backend/test/rating-recalculation.e2e-spec.ts` — E2E test for batch recalculation.
 
 ### Next Steps
 - Prompt 16: CI & Local E2E Smoke Tests

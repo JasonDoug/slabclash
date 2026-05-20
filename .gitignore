@@ -1,12 +1,21 @@
 # Dependencies
 node_modules/
-/packages/*/node_modules/*
+/backend/node_modules/*
+/frontend/node_modules/*
+/mobile/node_modules/*
+/shared/node_modules/*
 
 # Build output
 dist/
 build/
-packages/*/dist/
-packages/*/build/
+backend/dist/
+backend/build/
+frontend/dist/
+frontend/build/
+mobile/dist/
+mobile/build/
+shared/dist/
+shared/build/
 *.tsbuildinfo
 
 # Environment files
@@ -14,8 +23,14 @@ packages/*/build/
 .env.local
 .env.production
 .env.development
-packages/*/.env
-packages/*/.env.local
+backend/.env
+backend/.env.local
+frontend/.env
+frontend/.env.local
+mobile/.env
+mobile/.env.local
+shared/.env
+shared/.env.local
 
 # Yarn
 .yarn/cache
@@ -63,15 +78,15 @@ coverage/
 *.lcov
 
 # Prisma
-/packages/backend/prisma/generated-client/
+/backend/prisma/generated-client/
 
 # Mobile (React Native)
-/packages/mobile/android/build/
-/packages/mobile/android/.gradle/
-/packages/mobile/android/app/build/
-/packages/mobile/ios/build/
-/packages/mobile/ios/Pods/
-/packages/mobile/ios/DerivedData/
+/mobile/android/build/
+/mobile/android/.gradle/
+/mobile/android/app/build/
+/mobile/ios/build/
+/mobile/ios/Pods/
+/mobile/ios/DerivedData/
 *.cert
 *.mobileprovision
 *.p12

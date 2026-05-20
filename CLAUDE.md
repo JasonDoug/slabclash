@@ -23,7 +23,7 @@ yarn format                  # Format code with Prettier
 
 Run a single backend test:
 ```bash
-cd packages/backend && npx jest --testPathPattern="auth"
+cd backend && npx jest --testPathPattern="auth"
 ```
 
 ## Architecture
@@ -41,14 +41,14 @@ Backend follows standard NestJS module structure. Each feature module (auth, ing
 - `prisma/` — Prisma service and module wrapping the client
 - `health/` — Health check endpoint
 
-**Data models** (see `packages/backend/prisma/schema.prisma`):
+**Data models** (see `backend/prisma/schema.prisma`):
 - `User` — id, username, email, passwordHash, reputationScore, inAppCurrencyBalance
 - `Card` — id, userId, playerId, year, setName, variant, conditionReported, rarity, powerScore, imageFrontKey, imageBackKey, phash, ingestionStatus
 - `Player` — id, name (referenced by Card)
 - `CardIngestionJob` — card scan job with status enum (`uploaded → processing → awaiting_user_confirm → verified/flagged`), stores OCR text, phash, and candidate match JSON
 - `RatingJob` — id, cardId, status (for queued rating recalculations)
 
-**Shared types** (`packages/shared/src/index.ts`): `User` and `HealthStatus` interfaces, built and consumed via the `@slabclash/shared` package name.
+**Shared types** (`shared/src/index.ts`): `User` and `HealthStatus` interfaces, built and consumed via the `@slabclash/shared` package name.
 
 ## Environment
 
@@ -65,5 +65,5 @@ Cards automatically flagged for manual review based on condition:
 - TypeScript with decorators enabled (experimentalDecorators, emitDecoratorMetadata)
 - Jest with ts-jest for testing, test files match `*.spec.ts`
 - Prisma client pinned to 5.22.0 (both runtime and dev dependency must match)
-- Backend uses `@nestjs/cli` for generation: `cd packages/backend && nest generate service foo`
-- Run single test: `cd packages/backend && npx jest --testPathPatterns="ingestion.service.spec"`
+- Backend uses `@nestjs/cli` for generation: `cd backend && nest generate service foo`
+- Run single test: `cd backend && npx jest --testPathPatterns="ingestion.service.spec"`
