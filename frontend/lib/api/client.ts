@@ -41,67 +41,67 @@ apiClient.interceptors.response.use(
 // Auth endpoints
 export const authApi = {
   signup: (data: SignupDto) => 
-    apiClient.post<AuthResponse>('/auth/signup', data),
+    apiClient.post<AuthResponse>('auth/signup', data),
   login: (data: LoginDto) => 
-    apiClient.post<AuthResponse>('/auth/login', data),
+    apiClient.post<AuthResponse>('auth/login', data),
   logout: () => 
-    apiClient.post('/auth/logout'),
+    apiClient.post('auth/logout'),
 }
 
 // Scan endpoints
 export const scanApi = {
   createUploadUrls: (data: CreateUploadUrlsDto) =>
-    apiClient.post<UploadUrlsResponse>('/scan/upload', data),
+    apiClient.post<UploadUrlsResponse>('scan/upload', data),
   process: (scanJobId: string) =>
-    apiClient.post(`/scan/process/${scanJobId}`),
+    apiClient.post(`scan/process/${scanJobId}`),
   getStatus: (scanJobId: string) =>
-    apiClient.get<ScanStatusResponse>(`/scan/status/${scanJobId}`),
+    apiClient.get<ScanStatusResponse>(`scan/status/${scanJobId}`),
   confirm: (scanJobId: string, data: ConfirmScanDto) =>
-    apiClient.post<ConfirmScanResponse>(`/scan/confirm/${scanJobId}`, data),
+    apiClient.post<ConfirmScanResponse>(`scan/confirm/${scanJobId}`, data),
 }
 
 // Card endpoints
 export const cardApi = {
   getById: (cardId: string) =>
-    apiClient.get<CardDetail>(`/cards/${cardId}`),
+    apiClient.get<CardDetail>(`cards/${cardId}`),
   updateMetadata: (cardId: string, data: UpdateCardMetadataDto) =>
-    apiClient.patch(`/cards/${cardId}/metadata`, data),
+    apiClient.patch(`cards/${cardId}/metadata`, data),
   getUserCards: (userId: string, params?: ListCardsQueryDto) =>
-    apiClient.get<PaginatedCards>(`/users/${userId}/cards`, { params }),
+    apiClient.get<PaginatedCards>(`users/${userId}/cards`, { params }),
 }
 
 // Lineup endpoints
 export const lineupApi = {
   create: (data: CreateLineupDto) =>
-    apiClient.post<Lineup>('/lineup', data),
+    apiClient.post<Lineup>('lineup', data),
   getById: (lineupId: string) =>
-    apiClient.get<Lineup>(`/lineup/${lineupId}`),
+    apiClient.get<Lineup>(`lineup/${lineupId}`),
   getUserLineups: (userId: string) =>
-    apiClient.get<Lineup[]>(`/users/${userId}/lineups`),
+    apiClient.get<Lineup[]>(`users/${userId}/lineups`),
 }
 
 // Matchmaking endpoints
 export const matchmakingApi = {
   enqueue: (data: EnqueueMatchmakingDto) =>
-    apiClient.post('/matchmaking/enqueue', data),
+    apiClient.post('matchmaking/enqueue', data),
   getStatus: () =>
-    apiClient.get<MatchmakingStatus>('/matchmaking/status'),
+    apiClient.get<MatchmakingStatus>('matchmaking/status'),
   cancel: () =>
-    apiClient.post('/matchmaking/cancel'),
+    apiClient.post('matchmaking/cancel'),
 }
 
 // Match endpoints
 export const matchApi = {
   resolve: (data: ResolveMatchDto) =>
-    apiClient.post<MatchResult>('/match/resolve', data),
+    apiClient.post<MatchResult>('match/resolve', data),
   getById: (matchId: string) =>
-    apiClient.get<MatchResult>(`/match/${matchId}`),
+    apiClient.get<MatchResult>(`match/${matchId}`),
 }
 
 // Rating endpoints
 export const ratingApi = {
   calculate: (data: CalcRatingDto) =>
-    apiClient.post<CalcRatingResponse>('/rating/calc', data),
+    apiClient.post<CalcRatingResponse>('rating/calc', data),
 }
 
 // Types
