@@ -1,7 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://slabclash-api.onrender.com/v1').replace(/\/$/, '')
-const API_URL = `${rawApiUrl.endsWith('/v1') ? rawApiUrl : `${rawApiUrl}/v1`}/`
+const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://slabclash-api.onrender.com/v1').replace(/\/v1\/?$/, '').replace(/\/$/, '')
+const API_URL = rawApiUrl
 
 export const apiClient = axios.create({
   baseURL: API_URL,
@@ -41,67 +41,67 @@ apiClient.interceptors.response.use(
 // Auth endpoints
 export const authApi = {
   signup: (data: SignupDto) => 
-    apiClient.post<AuthResponse>('auth/signup', data),
+    apiClient.post<AuthResponse>('/v1/auth/signup', data),
   login: (data: LoginDto) => 
-    apiClient.post<AuthResponse>('auth/login', data),
+    apiClient.post<AuthResponse>('/v1/auth/login', data),
   logout: () => 
-    apiClient.post('auth/logout'),
+    apiClient.post('/v1/auth/logout'),
 }
 
 // Scan endpoints
 export const scanApi = {
   createUploadUrls: (data: CreateUploadUrlsDto) =>
-    apiClient.post<UploadUrlsResponse>('scan/upload', data),
+    apiClient.post<UploadUrlsResponse>('/v1/scan/upload', data),
   process: (scanJobId: string) =>
-    apiClient.post(`scan/process/${scanJobId}`),
+    apiClient.post(`/v1/scan/process/${scanJobId}`),
   getStatus: (scanJobId: string) =>
-    apiClient.get<ScanStatusResponse>(`scan/status/${scanJobId}`),
+    apiClient.get<ScanStatusResponse>(`/v1/scan/status/${scanJobId}`),
   confirm: (scanJobId: string, data: ConfirmScanDto) =>
-    apiClient.post<ConfirmScanResponse>(`scan/confirm/${scanJobId}`, data),
+    apiClient.post<ConfirmScanResponse>(`/v1/scan/confirm/${scanJobId}`, data),
 }
 
 // Card endpoints
 export const cardApi = {
   getById: (cardId: string) =>
-    apiClient.get<CardDetail>(`cards/${cardId}`),
+    apiClient.get<CardDetail>(`/v1/cards/${cardId}`),
   updateMetadata: (cardId: string, data: UpdateCardMetadataDto) =>
-    apiClient.patch(`cards/${cardId}/metadata`, data),
+    apiClient.patch(`/v1/cards/${cardId}/metadata`, data),
   getUserCards: (userId: string, params?: ListCardsQueryDto) =>
-    apiClient.get<PaginatedCards>(`users/${userId}/cards`, { params }),
+    apiClient.get<PaginatedCards>(`/v1/users/${userId}/cards`, { params }),
 }
 
 // Lineup endpoints
 export const lineupApi = {
   create: (data: CreateLineupDto) =>
-    apiClient.post<Lineup>('lineup', data),
+    apiClient.post<Lineup>('/v1/lineup', data),
   getById: (lineupId: string) =>
-    apiClient.get<Lineup>(`lineup/${lineupId}`),
+    apiClient.get<Lineup>(`/v1/lineup/${lineupId}`),
   getUserLineups: (userId: string) =>
-    apiClient.get<Lineup[]>(`users/${userId}/lineups`),
+    apiClient.get<Lineup[]>(`/v1/users/${userId}/lineups`),
 }
 
 // Matchmaking endpoints
 export const matchmakingApi = {
   enqueue: (data: EnqueueMatchmakingDto) =>
-    apiClient.post('matchmaking/enqueue', data),
+    apiClient.post('/v1/matchmaking/enqueue', data),
   getStatus: () =>
-    apiClient.get<MatchmakingStatus>('matchmaking/status'),
+    apiClient.get<MatchmakingStatus>('/v1/matchmaking/status'),
   cancel: () =>
-    apiClient.post('matchmaking/cancel'),
+    apiClient.post('/v1/matchmaking/cancel'),
 }
 
 // Match endpoints
 export const matchApi = {
   resolve: (data: ResolveMatchDto) =>
-    apiClient.post<MatchResult>('match/resolve', data),
+    apiClient.post<MatchResult>('/v1/match/resolve', data),
   getById: (matchId: string) =>
-    apiClient.get<MatchResult>(`match/${matchId}`),
+    apiClient.get<MatchResult>(`/v1/match/${matchId}`),
 }
 
 // Rating endpoints
 export const ratingApi = {
   calculate: (data: CalcRatingDto) =>
-    apiClient.post<CalcRatingResponse>('rating/calc', data),
+    apiClient.post<CalcRatingResponse>('/v1/rating/calc', data),
 }
 
 // Types
