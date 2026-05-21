@@ -15,7 +15,7 @@ import { AdminIngestionQueryDto } from './dto/admin-ingestion-query.dto';
 import { IngestionStatus } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, AdminGuard)
-@Controller('v1/admin/ingestion')
+@Controller('admin/ingestion')
 export class AdminIngestionController {
   constructor(private readonly prisma: PrismaService) {}
 

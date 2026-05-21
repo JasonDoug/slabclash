@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://slabclash-api.onrender.com/v1'
+const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://slabclash-api.onrender.com/v1').replace(/\/$/, '')
+const API_URL = rawApiUrl.endsWith('/v1') ? rawApiUrl : `${rawApiUrl}/v1`
 
 export const apiClient = axios.create({
   baseURL: API_URL,

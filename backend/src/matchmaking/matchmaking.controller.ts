@@ -14,7 +14,7 @@ import {
 } from './dto/enqueue-matchmaking.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('v1/matchmaking')
+@Controller('matchmaking')
 @UseGuards(JwtAuthGuard)
 export class MatchmakingController {
   constructor(private readonly matchmakingService: MatchmakingService) {}

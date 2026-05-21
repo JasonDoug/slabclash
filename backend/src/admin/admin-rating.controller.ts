@@ -15,7 +15,7 @@ import { CreateRatingConfigDto } from './dto/create-rating-config.dto';
 import { Prisma } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, AdminGuard)
-@Controller('v1/admin/rating-config')
+@Controller('admin/rating-config')
 export class AdminRatingController {
   private readonly logger = new Logger(AdminRatingController.name);
 

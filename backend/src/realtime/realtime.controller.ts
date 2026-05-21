@@ -2,7 +2,7 @@ import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { InMemoryRealtimeService } from './in-memory-realtime.service';
 
-@Controller('v1/notifications')
+@Controller('notifications')
 @UseGuards(JwtAuthGuard)
 export class RealtimeController {
   constructor(private readonly realtimeService: InMemoryRealtimeService) {}

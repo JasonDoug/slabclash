@@ -12,7 +12,7 @@ import { ResolveMatchDto } from './dto/resolve-match.dto';
 import { ResolutionResult } from './interfaces/resolution-result.interface';
 import { PrismaService } from '../prisma/prisma.service';
 
-@Controller('v1/match')
+@Controller('match')
 @UseGuards(JwtAuthGuard)
 export class MatchEngineController {
   constructor(

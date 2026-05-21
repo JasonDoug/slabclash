@@ -4,7 +4,7 @@ import { CalcRatingDto } from './dto/calc-rating.dto';
 import { CalcRatingResponseDto } from './dto/calc-rating-response.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-@Controller('v1/rating')
+@Controller('rating')
 export class RatingController {
   constructor(private readonly ratingService: RatingService) {}
 

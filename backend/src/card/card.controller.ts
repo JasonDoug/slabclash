@@ -19,7 +19,7 @@ interface RequestWithUser extends Request {
   };
 }
 
-@Controller('v1/cards')
+@Controller('cards')
 export class CardController {
   constructor(private readonly cardService: CardService) {}
 

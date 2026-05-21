@@ -17,7 +17,7 @@ interface RequestWithUser extends Request {
   user: { id: string; username: string };
 }
 
-@Controller('v1/lineups')
+@Controller('lineups')
 export class LineupController {
   constructor(private readonly lineupService: LineupService) {}
 

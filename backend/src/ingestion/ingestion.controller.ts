@@ -12,7 +12,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateUploadUrlsDto } from './dto/create-upload-urls.dto';
 import { ConfirmScanDto } from './dto/confirm-scan.dto';
 
-@Controller('v1/scan')
+@Controller('scan')
 export class IngestionController {
   constructor(private readonly ingestionService: IngestionService) {}
 

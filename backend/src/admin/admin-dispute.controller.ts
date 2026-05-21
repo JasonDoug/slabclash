@@ -13,7 +13,7 @@ import { AdminGuard } from '../auth/admin.guard';
 import { PrismaService } from '../prisma/prisma.service';
 
 @UseGuards(JwtAuthGuard, AdminGuard)
-@Controller('v1/admin/disputes')
+@Controller('admin/disputes')
 export class AdminDisputeController {
   constructor(private readonly prisma: PrismaService) {}
 
