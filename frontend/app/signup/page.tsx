@@ -49,8 +49,15 @@ export default function SignupPage() {
         password: data.password,
       })
     } catch (err) {
-      const axiosError = err as AxiosError<{ message: string }>
-      setError(axiosError.response?.data?.message || 'Failed to create account. Please try again.')
+      console.error('Signup error:', err)
+      const axiosError = err as AxiosError<{ message: string | string[] }>
+      const message = axiosError.response?.data?.message
+      
+      if (Array.isArray(message)) {
+        setError(message.join(', '))
+      } else {
+        setError(message || 'Failed to create account. Please try again.')
+      }
     }
   }
 

@@ -5,17 +5,9 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const origins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
-    : [
-        'http://localhost:3000',
-        'http://localhost:19006',
-        'https://v0-slabclash-web-frontend.vercel.app',
-      ]; // default for dev and current beta deployment
-
   app.enableCors({
-    origin: origins,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    origin: true, // Mirror the request origin
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true,
   });
