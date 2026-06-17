@@ -182,7 +182,7 @@ export class IngestionService {
       );
     }
 
-    if (job.status !== 'awaiting_user_confirm') {
+    if (job.status !== 'awaiting_user_confirm' && job.status !== 'uploaded') {
       throw new ForbiddenException('Scan job is not awaiting confirmation');
     }
 

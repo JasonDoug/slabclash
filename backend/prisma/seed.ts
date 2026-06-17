@@ -35,6 +35,24 @@ async function main() {
   });
 
   console.log('Seeded default rating config version 1.0.0');
+
+  // Seed reference players
+  const players = [
+    { id: 'p1', name: 'Marcus Ramirez' },
+    { id: 'p2', name: 'Shohei Ohtani' },
+    { id: 'p3', name: 'Mike Trout' },
+    { id: 'p4', name: 'Ronald Acuña Jr.' },
+    { id: 'p5', name: 'Juan Soto' },
+  ];
+
+  for (const player of players) {
+    await prisma.player.upsert({
+      where: { id: player.id },
+      update: { name: player.name },
+      create: player,
+    });
+  }
+  console.log(`Seeded ${players.length} reference players`);
 }
 
 main()

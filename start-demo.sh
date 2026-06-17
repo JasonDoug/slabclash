@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "--- SlabClash Fully Automated Startup ---"
+echo "--- SlabClash Demo Startup (Alt-Frontend Edition) ---"
 
 # 1. Kill stray processes on target ports
 echo "Cleaning up ports 3000 and 3001..."
@@ -11,7 +11,7 @@ fuser -k 3001/tcp 2>/dev/null
 echo "Resetting Docker containers..."
 docker compose down
 
-# 3. Start core services (Handling Redis port conflict)
+# 3. Start core services
 echo "Starting Database and Storage..."
 if ! docker compose up -d; then
   echo "⚠️ Redis port conflict detected. Starting without Docker Redis..."
@@ -19,6 +19,20 @@ if ! docker compose up -d; then
 fi
 
 # 4. Database Preparation
+echo "Preparing Backend Environment (.env)..."
+cat <<ENV > backend/.env
+DATABASE_URL="postgresql://postgres:password@localhost:5432/slabclash?schema=public"
+REDIS_HOST=localhost
+REDIS_PORT=6379
+JWT_SECRET=demo-secret-key-123
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=rootuser
+AWS_SECRET_ACCESS_KEY=rootpassword
+S3_ENDPOINT=http://localhost:9100
+S3_BUCKET_NAME=slabclash-uploads
+PHASH_THRESHOLD=10
+ENV
+
 echo "Preparing Database (Migrations & Seeding)..."
 cd backend
 yarn install --silent
@@ -30,15 +44,15 @@ cd ..
 # 5. Start Backend in Background (Explicit Port 3000)
 echo "Starting Backend on port 3000..."
 PORT=3000 nohup yarn dev:backend > backend.log 2>&1 &
-BACKEND_PID=\$!
+BACKEND_PID=$!
 
-# 6. Start Frontend in Background (Explicit Port 3001)
-echo "Starting Frontend on port 3001..."
-# Ensure .env.local exists for correct API routing
-echo "NEXT_PUBLIC_API_URL=http://localhost:3000/v1" > frontend/.env.local
-nohup yarn workspace @slabclash/frontend next dev -p 3001 > frontend.log 2>&1 &
-FRONTEND_PID=\$!
-
+# 6. Start Alt-Frontend in Background (Primary on port 3001)
+echo "Starting Frontend (Alt) on port 3001..."
+cd alt-frontend
+npm install --silent
+nohup npm run dev -- --port 3001 > ../frontend.log 2>&1 &
+FRONTEND_PID=$!
+cd ..
 
 # 7. Health Check Wait
 echo "Waiting for services to initialize..."
@@ -56,10 +70,11 @@ done
 echo " Done!"
 
 echo ""
-echo "--- ALL SERVICES RUNNING ---"
+echo "--- DEMO READY ---"
 echo "Backend PID: $BACKEND_PID (Logs: backend.log)"
 echo "Frontend PID: $FRONTEND_PID (Logs: frontend.log)"
 echo ""
-echo "🚀 Demo URL: http://localhost:3001/demo"
+echo "🚀 Demo URL: http://localhost:3001"
 echo ""
-echo "To stop everything later, run: kill $BACKEND_PID $FRONTEND_PID && docker compose down"
+echo "Note: The previous main-frontend has been disabled in this script."
+echo "To stop everything later, run: fuser -k 3000/tcp 3001/tcp && docker compose down"
