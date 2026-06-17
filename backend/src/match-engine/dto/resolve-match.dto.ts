@@ -27,6 +27,9 @@ export class ResolveMatchDto {
   @IsString()
   matchSeed?: string;
 
+  @IsOptional()
+  isWar?: boolean;
+
   validate(): ValidationError[] {
     const errors = validateSync(this);
     if (errors.length) return errors;

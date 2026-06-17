@@ -28,6 +28,7 @@ const navLinks = [
   { href: '/collection', label: 'My Collection', icon: LayoutGrid },
   { href: '/lineup', label: 'Build Lineup', icon: Layers },
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
+  { href: '/demo', label: 'War Demo', icon: Swords },
 ]
 
 export function Header() {

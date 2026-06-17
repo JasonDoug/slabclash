@@ -1,6 +1,7 @@
 'use client'
 
-import { type CardDetail, rarityConfig } from '@/lib/validation'
+import { rarityConfig } from '@/lib/validation'
+import { type CardDetail } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Zap } from 'lucide-react'
@@ -64,13 +65,14 @@ interface CardTileProps {
 export function CardTile({ card, onClick, selectable = false, selected = false }: CardTileProps) {
   const rarity = rarityConfig[card.rarity] || rarityConfig.common
   
-  const rarityGlowClass = {
+  const rarityGlowClass: Record<string, string> = {
     legendary: 'rarity-legendary',
     epic: 'rarity-epic',
     rare: 'rarity-rare',
     uncommon: 'rarity-uncommon',
     common: '',
-  }[card.rarity] || ''
+  }
+  const glowClass = rarityGlowClass[card.rarity] || ''
 
   const content = (
     <div

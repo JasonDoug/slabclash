@@ -188,13 +188,16 @@ export function ScanUploadModal({ open, onOpenChange }: ScanUploadModalProps) {
   const confirmMutation = useMutation({
     mutationFn: async (data: ConfirmScanFormData) => {
       if (!scanJobId) throw new Error('No scan job')
+      
+      // Map frontend fields to backend ConfirmScanDto
       const response = await scanApi.confirm(scanJobId, {
-        player: data.player,
+        playerId: 'p1', // Demo: using p1 for now, in real use we'd pick from candidates
         year: data.year,
-        set: data.set,
+        setName: data.set,
         variant: data.variant,
-        condition: data.condition,
-        notes: data.notes,
+        conditionReported: data.condition as any,
+        confirm: true,
+        playerStats: 85, // Default for demo
       })
       return response.data
     },

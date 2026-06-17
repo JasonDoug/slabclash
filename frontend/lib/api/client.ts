@@ -3,6 +3,8 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
 const rawApiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://slabclash-api.onrender.com/v1').replace(/\/$/, '')
 const API_URL = `${rawApiUrl.endsWith('/v1') ? rawApiUrl : `${rawApiUrl}/v1`}/`
 
+console.log('Frontend API URL:', API_URL)
+
 export const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
@@ -93,7 +95,7 @@ export const matchmakingApi = {
 // Match endpoints
 export const matchApi = {
   resolve: (data: ResolveMatchDto) =>
-    apiClient.post<MatchResult>('match/resolve', data),
+    apiClient.post<MatchResult | WarMatchResult>('match/resolve', data),
   getById: (matchId: string) =>
     apiClient.get<MatchResult>(`match/${matchId}`),
 }
@@ -165,6 +167,13 @@ export interface ConfirmScanDto {
   variant?: string
   condition: string
   notes?: string
+  // War additions
+  playerId?: string
+  setName?: string
+  conditionReported?: string
+  confirm?: boolean
+  playerStats?: number
+  marketValueCents?: number
 }
 
 export interface ConfirmScanResponse {
@@ -265,8 +274,17 @@ export interface MatchmakingStatus {
   lineupId?: string
 }
 
+export interface LineupInputDto {
+  slots: Record<string, string>;
+  aggregateMomentum?: number;
+}
+
 export interface ResolveMatchDto {
-  matchId: string
+  matchId?: string;
+  lineupA?: LineupInputDto;
+  lineupB?: LineupInputDto;
+  matchSeed?: string;
+  isWar?: boolean;
 }
 
 export interface MatchResult {
@@ -277,6 +295,19 @@ export interface MatchResult {
   positionResults: PositionResult[]
   rewards: MatchRewards
   createdAt: string
+}
+
+export interface WarMatchResult {
+  winner: 'A' | 'B' | 'draw';
+  winnerLineupId?: string;
+  lineupAId: string;
+  lineupBId: string;
+  scoreA: number;
+  scoreB: number;
+  perPositionResults: WarPositionResult[];
+  events: MatchEvent[];
+  matchSeed: string;
+  resolvedAt: Date;
 }
 
 export interface MatchPlayer {
@@ -293,6 +324,23 @@ export interface PositionResult {
   player1Score: number
   player2Score: number
   winnerId: string
+}
+
+export interface WarPositionResult {
+  position: string;
+  cardAId: string;
+  cardBId: string;
+  statA: number;
+  statB: number;
+  winner: 'A' | 'B' | 'draw';
+  pointsA: number;
+  pointsB: number;
+}
+
+export interface MatchEvent {
+  type: string;
+  description: string;
+  position?: string;
 }
 
 export interface MatchRewards {

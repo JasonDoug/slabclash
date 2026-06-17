@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    --background: 220 20% 7%;
+    --foreground: 40 20% 92%;
+
+    --card: 220 18% 11%;
+    --card-foreground: 40 20% 92%;
+
+    --popover: 220 18% 11%;
+    --popover-foreground: 40 20% 92%;
+
+    --primary: 40 90% 50%;
+    --primary-foreground: 220 20% 7%;
+
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 40 20% 85%;
+
+    --muted: 220 15% 15%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 40 90% 50%;
+    --accent-foreground: 220 20% 7%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 40 90% 50%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 18% 9%;
+    --sidebar-foreground: 40 20% 92%;
+    --sidebar-primary: 40 90% 50%;
+    --sidebar-primary-foreground: 220 20% 7%;
+    --sidebar-accent: 220 15% 15%;
+    --sidebar-accent-foreground: 40 20% 85%;
+    --sidebar-border: 220 15% 20%;
+    --sidebar-ring: 40 90% 50%;
+
+    /* Custom tokens */
+    --gold: 40 90% 50%;
+    --gold-light: 40 85% 65%;
+    --gold-dark: 40 95% 38%;
+    --surface: 220 18% 13%;
+    --surface-hover: 220 18% 16%;
+    --holographic-1: 280 80% 60%;
+    --holographic-2: 200 90% 55%;
+    --holographic-3: 40 90% 50%;
+    --win: 142 70% 45%;
+    --loss: 0 72% 51%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .text-gold-gradient {
+    background: linear-gradient(135deg, hsl(var(--gold-dark)), hsl(var(--gold)), hsl(var(--gold-light)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .bg-gold-gradient {
+    background: linear-gradient(135deg, hsl(var(--gold-dark)), hsl(var(--gold)));
+  }
+
+  .card-holographic {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-holographic::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      125deg,
+      transparent 0%,
+      hsl(var(--holographic-1) / 0.08) 25%,
+      hsl(var(--holographic-2) / 0.08) 50%,
+      hsl(var(--holographic-3) / 0.08) 75%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+    animation: holographic-shift 4s ease-in-out infinite;
+  }
+
+  @keyframes holographic-shift {
+    0%, 100% { opacity: 0.5; transform: translateX(-20%); }
+    50% { opacity: 1; transform: translateX(20%); }
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 20px hsl(var(--gold) / 0.3), 0 0 60px hsl(var(--gold) / 0.1);
+  }
+
+  .surface-elevated {
+    background: hsl(var(--surface));
+    border: 1px solid hsl(var(--border));
+  }
+}

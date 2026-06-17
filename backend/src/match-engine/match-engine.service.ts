@@ -165,6 +165,31 @@ export class MatchEngineService {
       scoreA += comparison.pointsA;
       scoreB += comparison.pointsB;
 
+      // War Mode: transfer ownership of the losing card to the winner
+      if (dto.isWar && lineupAInput.userId && lineupBInput.userId) {
+        if (comparison.winner === 'A' && cardB.id) {
+          await this.prisma.card.update({
+            where: { id: cardB.id },
+            data: { userId: lineupAInput.userId },
+          });
+          events.push({
+            type: 'war_transfer',
+            description: `War: Lineup A takes Card ${cardB.id} from Lineup B`,
+            position,
+          });
+        } else if (comparison.winner === 'B' && cardA.id) {
+          await this.prisma.card.update({
+            where: { id: cardA.id },
+            data: { userId: lineupBInput.userId },
+          });
+          events.push({
+            type: 'war_transfer',
+            description: `War: Lineup B takes Card ${cardA.id} from Lineup A`,
+            position,
+          });
+        }
+      }
+
       perPositionResults.push({
         position,
         cardAId: cardA.id,
